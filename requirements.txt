@@ -1,1 +1,2 @@
 python-gnupg
+configargparse

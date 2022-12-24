@@ -3,7 +3,7 @@ import json
 import os.path
 import subprocess
 import time
-import argparse
+import configargparse
 from write_to_file import WriteToFile, EncryptAndWriteToFile
 
 COMMON_CLI_PARAMS: list = ['--raw']
@@ -29,10 +29,32 @@ if __name__ == '__main__':
 
     bw_current_status = json.loads(bw_exec(["bw", "status"]))
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument("-d", '--directory', help="Bitwarden Dump Location", default=f'bitwarden_dump_{int(time.time())}')
+    parser = configargparse.ArgParser()
+    parser.add_argument("-d", '--directory', help="Bitwarden Dump Location", default=f'dump_{int(time.time())}')
+    parser.add_argument("-f", '--force-logout', help="Logout of any existing session", default=False, action="store_true")
     parser.add_argument("-g", '--gpg-fpr', help="gpg-key-id for file encryption")
+    parser.add_argument('--master-password', help="Bitwarden master password, or set BW_MASTERPASSWORD as environment variable", required=False, env_var='BW_MASTERPASSWORD')
     args, unknown = parser.parse_known_args()
+
+    if args.force_logout:
+        print(bw_exec(["bw", "logout"]))
+        bw_current_status = json.loads(bw_exec(["bw", "status"]))
+
+    # Login using api key
+    if bw_current_status['status'] == 'unauthenticated':
+        parser.add_argument('--client-id', help="Bitwarden API Client ID, or set BW_CLIENTID as environment variable", required=True, env_var='BW_CLIENTID')
+        parser.add_argument('--client-secret', help="Bitwarden API Client Secret, or set BW_CLIENTSECRET as environment variable",
+                            required=True, env_var='BW_CLIENTSECRET')
+        args, unknown = parser.parse_known_args()
+        print(bw_exec(["bw", "login", '--apikey', args.master_password], env_vars=dict(BW_CLIENTID=args.client_id, BW_CLIENTSECRET=args.client_secret)))
+        bw_current_status = json.loads(bw_exec(["bw", "status"]))
+
+    if bw_current_status['status'] == 'locked':
+        session_id = bw_exec(["bw", "unlock", args.master_password])
+
+        COMMON_CLI_PARAMS.append('--session')
+        COMMON_CLI_PARAMS.append(session_id)
+        bw_current_status = json.loads(bw_exec(["bw", "status"]))
 
     if bw_current_status['status'] != 'unlocked':
         raise Exception('Unable to unlock the vault')
