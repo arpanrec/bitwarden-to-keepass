@@ -1,6 +1,0 @@
-pykeepass
-striprtf
-pytz
-python-gnupg
-pyotp
-configargparse

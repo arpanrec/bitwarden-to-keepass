@@ -24,25 +24,8 @@ $ python3 bw_dump.py
     (String) Bitwarden Dump Location.  
     Default: `dump_time`
 
-- `-f` `--force-logout`  
-    Logout of any existing session.  
-    Default: `False`
-
 - `-g` `--gpg-fpr`  
     (String) gpg-key-id for file encryption. Public key must be uploaded to [keyserver](hkps://keys.openpgp.org)  
-    Default: `None`
-
-- `--master-password`  
-    (String) Bitwarden master password, or set `BW_MASTERPASSWORD` as environment variable.  
-    This is required when the bitwarden cli session is locked or unauthenticated  
-    Default: `None`
-
-- `--client-id`  
-    (String) Bitwarden API [Client ID](https://bitwarden.com/help/article/personal-api-key/), or set `BW_CLIENTID` as environment variable.  
-    Default: `None`
-
-- `--client-secret`  
-    (String) Bitwarden API [Client Secret](https://bitwarden.com/help/article/personal-api-key/), or set `BW_CLIENTSECRET` as environment variable.  
     Default: `None`
 
 ## Roadmap
@@ -61,4 +44,4 @@ Make a cloud ready option for bitwarden zero touch backup
 
 ## License
 
-[APACHE LICENSE, VERSION 2.0](http://www.apache.org/licenses/LICENSE-2.0)
+MIT
