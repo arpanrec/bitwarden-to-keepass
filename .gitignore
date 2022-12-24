@@ -133,5 +133,6 @@ dmypy.json
 .env*
 .idea
 dump*
+bitwarden_dump*
 temp.py
 __pycache__

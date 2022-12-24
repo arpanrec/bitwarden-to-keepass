@@ -1,6 +1,6 @@
-import gnupg
-import os
 import tempfile
+import os
+import gnupg
 
 
 class EncryptAndWriteToFile:
@@ -27,7 +27,7 @@ class WriteToFile:
         elif isinstance(data, bytes):
             mode = 'wb'
         else:
-            raise Exception('Type Unable to Write %s' % type(data))
+            raise Exception("Type Unable to Write {type(data)}")
 
-        with open(path, mode) as file_attach:
+        with open(path, mode, encoding="UTF-8") as file_attach:
             file_attach.write(data)
