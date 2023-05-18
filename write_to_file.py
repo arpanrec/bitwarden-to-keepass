@@ -24,10 +24,12 @@ class WriteToFile:
     def write(self, data, path):
         if isinstance(data, str):
             mode = 'w'
+            sys_encoding = "UTF-8"
         elif isinstance(data, bytes):
             mode = 'wb'
+            sys_encoding = None
         else:
             raise Exception("Type Unable to Write {type(data)}")
 
-        with open(path, mode, encoding="UTF-8") as file_attach:
+        with open(path, mode, encoding=sys_encoding) as file_attach:
             file_attach.write(data)
