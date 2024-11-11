@@ -17,7 +17,7 @@ line_length = 120
 line-length = 120
 
 [tool.poetry]
-name = "bitwarden-to-keepass"
+name = "bitwarden-exporter"
 version = "0.1.0"
 description = "Export Bitwarden items to Keepass"
 authors = ["arpan <arpan.rec@gmail.com>"]
