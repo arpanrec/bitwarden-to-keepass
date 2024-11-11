@@ -76,9 +76,17 @@ def main() -> None:
         if not bw_item.collectionIds or len(bw_item.collectionIds) < 1:
             raise BitwardenException(f"Item {bw_item.id} does not have any collection, but belongs to an organization")
 
-        for collection_id in bw_item.collectionIds:
-            collection = organization.collections[collection_id]
-            collection.items[bw_item.id] = bw_item
+        if len(bw_item.collectionIds) > 1:
+            logging.warning(
+                "Item %s belongs to multiple collections Just using the first one %s",
+                bw_item.id,
+                bw_item.collectionIds[0],
+            )
+        organization.collections[bw_item.collectionIds[0]].items[bw_item.id] = bw_item
+
+        # for collection_id in bw_item.collectionIds:
+        #     collection = organization.collections[collection_id]
+        #     collection.items[bw_item.id] = bw_item
 
     logging.info("Total Items Fetched: %s", bw_organizations)
 
