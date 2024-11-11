@@ -1,6 +1,6 @@
-from typing import Optional, List
+from typing import List, Optional
 
-from pydantic import BaseModel, PositiveInt
+from pydantic import BaseModel
 
 
 class BwItemLoginFido2Credentials(BaseModel):
@@ -46,6 +46,13 @@ class BwItemAttachment(BaseModel):
     url: str
 
 
+class BwField(BaseModel):
+    name: str
+    value: str
+    type: int
+    linkedId: Optional[str] = None
+
+
 class BwItem(BaseModel):
     passwordHistory: Optional[List[BwItemPasswordHistory]] = None
     revisionDate: str
@@ -55,11 +62,35 @@ class BwItem(BaseModel):
     id: str
     organizationId: Optional[str] = None
     folderId: Optional[str] = None
-    type: PositiveInt
+    type: int
     reprompt: int
     name: str
     notes: Optional[str] = None
     favorite: bool
     login: Optional[BwItemLogin] = None
-    collectionIds: Optional[list] = None
+    collectionIds: Optional[List[str]] = None
     attachments: Optional[List[BwItemAttachment]] = None
+    fields: Optional[List[BwField]] = None
+
+
+class BwOrganization(BaseModel):
+    object: str
+    id: str
+    name: str
+    status: int
+    type: int
+    enabled: bool
+
+
+class BwCollection(BaseModel):
+    object: str
+    id: str
+    organizationId: str
+    name: str
+    externalId: Optional[str] = None
+
+
+class BwFolder(BaseModel):
+    object: str
+    id: Optional[str] = None
+    name: str
