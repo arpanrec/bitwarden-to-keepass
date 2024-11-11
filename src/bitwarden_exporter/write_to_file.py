@@ -15,3 +15,9 @@ def write_to_file(data: str, path: Union[str, bytes]) -> None:
 
     with open(path, mode, encoding=sys_encoding) as file_attach:
         file_attach.write(data)
+
+
+def write_to_keepass():
+    """
+    Function to write to Keepass
+    """
