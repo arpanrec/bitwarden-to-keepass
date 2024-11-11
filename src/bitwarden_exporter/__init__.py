@@ -22,4 +22,6 @@ logging.basicConfig(
 
 
 class BitwardenException(Exception):
-    pass
+    """
+    Base Exception for Bitwarden Export
+    """

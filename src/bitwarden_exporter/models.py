@@ -4,6 +4,10 @@ from pydantic import BaseModel
 
 
 class BwItemLoginFido2Credentials(BaseModel):
+    """
+    Bitwarden Fido2 Credentials Model
+    """
+
     credentialId: str
     keyType: str
     keyAlgorithm: str
@@ -20,11 +24,19 @@ class BwItemLoginFido2Credentials(BaseModel):
 
 
 class BwItemLoginUri(BaseModel):
+    """
+    Bitwarden Login URI Model
+    """
+
     match: Optional[int] = None
     uri: str
 
 
 class BwItemLogin(BaseModel):
+    """
+    Bitwarden Login Model
+    """
+
     username: Optional[str] = None
     password: Optional[str] = None
     totp: Optional[str] = None
@@ -34,11 +46,19 @@ class BwItemLogin(BaseModel):
 
 
 class BwItemPasswordHistory(BaseModel):
+    """
+    Bitwarden Password History Model
+    """
+
     lastUsedDate: str
     password: str
 
 
 class BwItemAttachment(BaseModel):
+    """
+    Bitwarden Attachment Model
+    """
+
     id: str
     fileName: str
     size: str
@@ -47,6 +67,10 @@ class BwItemAttachment(BaseModel):
 
 
 class BwField(BaseModel):
+    """
+    Bitwarden Field Model
+    """
+
     name: str
     value: str
     type: int
@@ -54,6 +78,10 @@ class BwField(BaseModel):
 
 
 class BwItem(BaseModel):
+    """
+    Bitwarden Item Model
+    """
+
     passwordHistory: Optional[List[BwItemPasswordHistory]] = None
     revisionDate: str
     creationDate: str
@@ -74,6 +102,10 @@ class BwItem(BaseModel):
 
 
 class BwOrganization(BaseModel):
+    """
+    Bitwarden Organization Model
+    """
+
     object: str
     id: str
     name: str
@@ -83,6 +115,10 @@ class BwOrganization(BaseModel):
 
 
 class BwCollection(BaseModel):
+    """
+    Bitwarden Collection Model
+    """
+
     object: str
     id: str
     organizationId: str
@@ -91,6 +127,10 @@ class BwCollection(BaseModel):
 
 
 class BwFolder(BaseModel):
+    """
+    Bitwarden Folder Model
+    """
+
     object: str
     id: Optional[str] = None
     name: str

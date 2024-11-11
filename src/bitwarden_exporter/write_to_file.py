@@ -1,5 +1,7 @@
 from typing import Union
 
+from . import BitwardenException
+
 
 def write_to_file(data: str, path: Union[str, bytes]) -> None:
     if isinstance(data, str):
@@ -9,7 +11,7 @@ def write_to_file(data: str, path: Union[str, bytes]) -> None:
         mode = "wb"
         sys_encoding = None
     else:
-        raise Exception("Type Unable to Write {type(data)}")
+        raise BitwardenException("Type Unable to Write {type(data)}")
 
     with open(path, mode, encoding=sys_encoding) as file_attach:
         file_attach.write(data)
