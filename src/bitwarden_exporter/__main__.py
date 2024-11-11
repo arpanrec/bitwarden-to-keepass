@@ -40,7 +40,7 @@ def main() -> None:
     parser.add_argument(
         "-d", "--directory", help="Bitwarden Dump Location", default=f"bitwarden_dump_{int(time.time())}"
     )
-    args, unknown = parser.parse_known_args()
+    _, _ = parser.parse_known_args()
 
     if bw_current_status["status"] != "unlocked":
         raise BitwardenException("Unable to unlock the vault")
