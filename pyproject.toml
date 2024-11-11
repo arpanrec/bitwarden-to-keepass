@@ -24,12 +24,13 @@ authors = ["arpan <arpan.rec@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 package-mode = true
-packages = [{ include = "bitwarden_to_keepass", from = "src" }]
-scripts = { "bitwarden_to_keepass" = "bitwarden_to_keepass.__main__:main" }
+packages = [{ include = "bitwarden_exporter", from = "src" }]
+scripts = { "bitwarden-exporter" = "bitwarden_exporter.__main__:main" }
 
 [tool.poetry.dependencies]
 python = "^3.10"
 gnupg = "2.3.1"
+pydantic = "2.9.2"
 
 [tool.poetry.group.dev.dependencies]
 bandit = "1.7.10"

@@ -6,37 +6,16 @@ import json
 import logging
 import os.path
 import subprocess
-import sys
 import time
 from typing import Dict, List, Optional
-
-from write_to_file import EncryptAndWriteToFile, WriteToFile
-
-IS_DEBUG: bool = False
-LOGGING_LEVEL: int = logging.INFO
-if str(os.environ.get("DEBUG", "False")).lower() == "true":
-    IS_DEBUG = True
-    LOGGING_LEVEL = logging.DEBUG
-
-print("Remove existing log handlers")
-root = logging.getLogger()
-if root.handlers:
-    for handler in root.handlers:
-        root.removeHandler(handler)
-
-logging.basicConfig(
-    level=LOGGING_LEVEL,
-    format="%(asctime)s - %(levelname)s - %(name)s.%(funcName)s():%(lineno)d:- %(message)s",
-    handlers=[logging.StreamHandler(sys.stdout)],
-)
+from .models import BwItem
+from .write_to_file import EncryptAndWriteToFile, WriteToFile
 
 LOGGER = logging.getLogger(__name__)
 
-COMMON_CLI_PARAMS: list = ["--raw"]
-
 
 def bw_exec(cmd: List[str], ret_encoding: str = "UTF-8", env_vars: Optional[Dict[str, str]] = None) -> str:
-    cmd.extend(COMMON_CLI_PARAMS)
+    cmd = ["bw"] + cmd + ["--raw"]
 
     cli_env_vars = os.environ
 
@@ -44,18 +23,17 @@ def bw_exec(cmd: List[str], ret_encoding: str = "UTF-8", env_vars: Optional[Dict
         cli_env_vars.update(env_vars)
     print(f"Executing CLI :: {' '.join(cmd)}")
     command_out = subprocess.run(cmd, capture_output=True, check=False, encoding=ret_encoding, env=cli_env_vars)
-
+    if len(command_out.stderr) > 0:
+        raise Exception(f"Error in executing command {command_out.stderr}")
+    command_out.check_returncode()
     if len(command_out.stdout) > 0:
         return command_out.stdout
 
-    if len(command_out.stderr) > 0:
-        return command_out.stderr
     return ""
 
 
-if __name__ == "__main__":
-
-    bw_current_status = json.loads(bw_exec(["bw", "status"]))
+def main() -> None:
+    bw_current_status = json.loads(bw_exec(["status"]))
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -73,15 +51,13 @@ if __name__ == "__main__":
         file_writer = EncryptAndWriteToFile(args.gpg_fpr)
 
     # Syn latest version
-    bw_sync_status = bw_exec(["bw", "sync"])
-    # if bw_sync_status != 'Syncing complete.':
-    #    raise Exception('Failed to sync vault :: ' + bw_sync_status)
+    bw_sync_status = bw_exec(["sync"])
 
     # Fetch Organization Details
-    bw_organizations = json.loads((bw_exec(["bw", "list", "organizations"])))
-    bw_items = json.loads((bw_exec(["bw", "list", "items"])))
-    bw_folders = json.loads((bw_exec(["bw", "list", "folders"])))
-    bw_collections = json.loads((bw_exec(["bw", "list", "collections"])))
+    bw_organizations = json.loads((bw_exec(["list", "organizations"])))
+    bw_items = json.loads((bw_exec(["list", "items"])))
+    bw_folders = json.loads((bw_exec(["list", "folders"])))
+    bw_collections = json.loads((bw_exec(["list", "collections"])))
 
     items_lists_based_on_organization: dict = {}
     attachments_list: list = []
@@ -91,6 +67,9 @@ if __name__ == "__main__":
 
     while len(bw_items) > 0:
         bw_item = bw_items.pop()
+        logging.debug("bw item: %s" % bw_item)
+        bw_item_model: BwItem = BwItem(**bw_item)
+        print(f"Downloading Item \n {bw_item_model}")
         if bw_item["organizationId"] is not None:
             items_lists_based_on_organization[bw_item["organizationId"]]["items"].append(bw_item)
             org_or_user_id = bw_item["organizationId"]
@@ -109,7 +88,7 @@ if __name__ == "__main__":
                 os.makedirs(path)
 
             attachment_cmd_out = bw_exec(
-                ["bw", "get", "attachment", "--itemid", bw_item["id"], attachment["id"]], ret_encoding=""
+                ["get", "attachment", "--itemid", bw_item["id"], attachment["id"]], ret_encoding=""
             )
 
             file_writer.write(attachment_cmd_out, os.path.join(path, attachment["fileName"]))
@@ -130,3 +109,7 @@ if __name__ == "__main__":
         file_writer.write(
             json.dumps(items_lists_based_on_organization[export_dict], indent=4), os.path.join(path, "export.json")
         )
+
+
+if __name__ == "__main__":
+    main()
