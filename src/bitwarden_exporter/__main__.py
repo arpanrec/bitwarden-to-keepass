@@ -7,7 +7,7 @@ import logging
 import os.path
 import subprocess  # nosec B404
 import time
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 from . import BitwardenException
 from .models import BwCollection, BwFolder, BwItem, BwOrganization
@@ -45,22 +45,42 @@ def main() -> None:
     _, _ = parser.parse_known_args()
 
     if bw_current_status["status"] != "unlocked":
-        raise BitwardenException("Unable to unlock the vault")
+        raise BitwardenException("Vault is not unlocked")
 
     # Fetch Organization Details
-    bw_items: List[BwItem] = [BwItem(**item) for item in json.loads((bw_exec(["list", "items"])))]
-
-    logging.info("Total Items Fetched: %s", len(bw_items))
-    # Fetch Organization Details
-    bw_organizations: List[BwOrganization] = [
-        BwOrganization(**org) for org in json.loads((bw_exec(["list", "organizations"])))
-    ]
+    bw_organizations_dict = json.loads((bw_exec(["list", "organizations"])))
+    # {"id", BwOrganization}
+    bw_organizations: Dict[str, BwOrganization] = {
+        organization["id"]: BwOrganization(**organization) for organization in bw_organizations_dict
+    }
     logging.info("Total Organizations Fetched: %s", len(bw_organizations))
 
-    bw_collections: List[BwCollection] = [
-        BwCollection(**collection) for collection in json.loads((bw_exec(["list", "collections"])))
-    ]
-    logging.info("Total Collections Fetched: %s", len(bw_collections))
+    bw_collections_dict = json.loads((bw_exec(["list", "collections"])))
+    logging.info("Total Collections Fetched: %s", len(bw_collections_dict))
+
+    for bw_collection_dict in bw_collections_dict:
+        bw_collection = BwCollection(**bw_collection_dict)
+        organization = bw_organizations[bw_collection.organizationId]
+        organization.collections[bw_collection.id] = bw_collection
+
+    # Fetch Organization Details
+    bw_items_dict: List[Dict[str, Any]] = json.loads((bw_exec(["list", "items"])))
+    logging.info("Total Items Fetched: %s", len(bw_items_dict))
+    for bw_item_dict in bw_items_dict:
+        bw_item = BwItem(**bw_item_dict)
+        if not bw_item.organizationId:
+            continue
+
+        organization = bw_organizations[bw_item.organizationId]
+
+        if not bw_item.collectionIds or len(bw_item.collectionIds) < 1:
+            raise BitwardenException(f"Item {bw_item.id} does not have any collection, but belongs to an organization")
+
+        for collection_id in bw_item.collectionIds:
+            collection = organization.collections[collection_id]
+            collection.items[bw_item.id] = bw_item
+
+    logging.info("Total Items Fetched: %s", bw_organizations)
 
     bw_folders: List[BwFolder] = [BwFolder(**folder) for folder in json.loads((bw_exec(["list", "folders"])))]
     logging.info("Total Folders Fetched: %s", len(bw_folders))
