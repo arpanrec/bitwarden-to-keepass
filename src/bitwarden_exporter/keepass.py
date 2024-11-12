@@ -76,7 +76,7 @@ def add_entry(py_kee_pass: PyKeePass, group: Group, item: BwItem) -> Entry:
         LOGGER.error("Error adding attachment %s", e)
         raise BitwardenException("Error adding attachment") from e
     if item.login.totp:
-        entry.custom_properties.setdefault("TOTP", item.login.totp, "String")
+        entry.custom_properties.setdefault("TOTP", item.login.totp)
 
     return entry
 
@@ -92,7 +92,7 @@ def add_attachment(py_kee_pass: PyKeePass, entry: Entry, item: BwItem) -> None:
             attachment.fileName = f"{attachment.fileName}-1"
         all_names.append(attachment.fileName)
         with open(attachment.local_file_path, "rb") as file_attach:
-            binary_id = py_kee_pass.add_binary(data=file_attach, protected=False, compressed=False)
+            binary_id = py_kee_pass.add_binary(data=file_attach.read(), protected=False, compressed=False)
             entry.add_attachment(binary_id, attachment.fileName)
 
 
