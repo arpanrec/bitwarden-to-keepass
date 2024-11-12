@@ -5,7 +5,7 @@ Writes the given data to a file at the specified path.
 import logging
 import urllib.parse
 from types import TracebackType
-from typing import Dict, List, Union, Optional, Type
+from typing import Dict, List, Optional, Type, Union
 
 from pykeepass import PyKeePass, create_database  # type: ignore
 from pykeepass.entry import Entry  # type: ignore
