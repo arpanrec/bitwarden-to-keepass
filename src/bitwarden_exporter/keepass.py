@@ -4,6 +4,7 @@ Writes the given data to a file at the specified path.
 
 import logging
 import time
+import urllib.parse
 from typing import Dict, List, Union
 
 from pykeepass import PyKeePass, create_database  # type: ignore
@@ -49,35 +50,52 @@ def add_group_recursive(py_kee_pass: PyKeePass, parent_group: Group, group_path:
     return py_kee_pass.add_group(parent_group, group_name=group_path)
 
 
-def add_entry(py_kee_pass: PyKeePass, group: Group, item: BwItem) -> Entry:
+def add_entry(py_kee_pass: PyKeePass, group: Group, bw_item: BwItem) -> Entry:
     """
     Add an entry to Keepass
     """
-    if not item.login:
-        LOGGER.warning("No Login for %s, skipping", item.name)
-        item.login = BwItemLogin(username="No Username", password="No Password")
+    if not bw_item.login:
+        LOGGER.warning("No Login for %s, skipping", bw_item.name)
+        bw_item.login = BwItemLogin(username="No Username", password="No Password")
     else:
-        if not item.login.username:
-            LOGGER.warning("No Username for %s, setting it to No Username", item.name)
-            item.login.username = "No Username"
-        if not item.login.password:
-            LOGGER.warning("No Password for %s, setting it to No Password", item.name)
-            item.login.password = "No Password"
+        if not bw_item.login.username:
+            LOGGER.warning("No Username for %s, setting it to No Username", bw_item.name)
+            bw_item.login.username = "No Username"
+        if not bw_item.login.password:
+            LOGGER.warning("No Password for %s, setting it to No Password", bw_item.name)
+            bw_item.login.password = "No Password"
 
     entry: Entry = py_kee_pass.add_entry(
         destination_group=group,
-        title=item.name,
-        username=item.login.username,
-        password=item.login.password,
+        title=bw_item.name,
+        username=bw_item.login.username,
+        password=bw_item.login.password,
     )
-    add_fields(entry, item)
-    add_attachment(py_kee_pass, entry, item)
-
-    if item.login.totp:
-        LOGGER.warning("Adding OTP for %s", item.login.totp)
-        entry.otp = item.login.totp
+    add_fields(entry, bw_item)
+    add_attachment(py_kee_pass, entry, bw_item)
+    add_otp(entry, bw_item)
 
     return entry
+
+
+def add_otp(entry: Entry, bw_item: BwItem) -> None:
+    """
+    Add OTP to Keepass
+    """
+    if (not bw_item.login) or (not bw_item.login.totp):
+        return None
+
+    LOGGER.info("Adding OTP for %s", bw_item.name)
+    if not bw_item.login.totp.startswith("otpauth://"):
+        url_safe_totp = bw_item.login.totp.replace(" ", "").lower()
+        url_safe_name = urllib.parse.quote_plus(bw_item.name)
+        bw_item.login.totp = (
+            f"otpauth://totp/{url_safe_name}?secret={url_safe_totp}"
+            f"&issuer={url_safe_name}&algorithm=SHA1&digits=6&period=30"
+        )
+        bw_item.login.totp = bw_item.login.totp
+    entry.otp = bw_item.login.totp
+    return None
 
 
 def add_fields(entry: Entry, item: BwItem) -> None:
@@ -86,8 +104,8 @@ def add_fields(entry: Entry, item: BwItem) -> None:
     """
     all_field_names = []
     for field in item.fields:
-        if field.name in all_field_names:
-            LOGGER.warning("Field with name %s already exists, Adding -1", field.name)
+        if (field.name in all_field_names) or (field.name in ["otp"]):
+            LOGGER.warning("Field with name %s Adding -1", field.name)
             field.name = f"{field.name}-1"
         all_field_names.append(field.name)
         entry.set_custom_property(field.name, field.value, protect=False)
