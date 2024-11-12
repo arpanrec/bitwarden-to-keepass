@@ -18,6 +18,7 @@ import argparse
 import json
 import logging
 import os.path
+import tempfile
 import time
 from typing import Any, Dict, List
 
@@ -25,9 +26,12 @@ from . import BitwardenException
 from .cli import bw_exec, download_file
 from .keepass import write_to_keepass
 from .models import BwCollection, BwFolder, BwItem, BwOrganization
+from . import is_debug
 
 LOGGER = logging.getLogger(__name__)
-ATTACHMENT_DIR = os.path.abspath("bitwarden_dump_attachments")
+
+
+
 
 
 def main() -> None:
@@ -62,6 +66,13 @@ def main() -> None:
         organization.collections[bw_collection.id] = bw_collection
 
     bw_items_dict: List[Dict[str, Any]] = json.loads((bw_exec(["list", "items"])))
+
+    if is_debug():
+        attachment_dir = os.path.abspath("bitwarden_dump_attachments")
+    else:
+        with tempfile.TemporaryDirectory(delete=True) as temp_dir:
+            attachment_dir = temp_dir
+
     LOGGER.info("Total Items Fetched: %s", len(bw_items_dict))
     for bw_item_dict in bw_items_dict:
         LOGGER.debug("Processing Item %s", json.dumps(bw_item_dict))
@@ -70,7 +81,7 @@ def main() -> None:
         if bw_item.attachments and len(bw_item.attachments) > 0:
             LOGGER.info("Item %s has attachments %s", bw_item.id, bw_item.attachments)
             for attachment in bw_item.attachments:
-                attachment.local_file_path = os.path.join(ATTACHMENT_DIR, bw_item.id, attachment.id)
+                attachment.local_file_path = os.path.join(attachment_dir, bw_item.id, attachment.id)
                 download_file(bw_item.id, attachment.id, attachment.local_file_path)
         if not bw_item.organizationId:
             continue
