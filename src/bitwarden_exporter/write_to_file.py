@@ -38,4 +38,7 @@ def write_to_keepass() -> None:
     file_name = f"bitwarden_dump_{epoch_time}.kdbx"
     LOGGER.info("Creating Keepass Database: %s, Password: password", file_name)
     kp = create_database(file_name, password="password")
-    print(kp.root_group)
+    e = kp.add_entry(kp.root_group, title="foo", username="", password="")
+    bin_id = kp.add_binary(data=b"Hello World", compressed=False, protected=True)
+    e.add_attachment(bin_id, "foo.txt")
+    kp.save()
