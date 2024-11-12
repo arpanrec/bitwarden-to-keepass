@@ -94,7 +94,7 @@ def add_fields(entry: Entry, item: BwItem) -> None:
     """
     Add fields to Keepass
     """
-    all_field_names = []
+    all_field_names = [] + list(entry.custom_properties.keys())
     for field in item.fields:
         if field.name in all_field_names:
             LOGGER.warning("Duplicate Field with name %s, Adding -1", field.name)
@@ -111,7 +111,7 @@ def add_attachment(py_kee_pass: PyKeePass, entry: Entry, item: BwItem) -> None:
     """
     Add an attachment to Keepass
     """
-    all_names = []
+    all_names = [] + [attachment.fileName for attachment in entry.attachments]
     for attachment in item.attachments:
         if attachment.fileName in all_names:
             LOGGER.warning("Attachment with name %s already exists, Adding -1", attachment.fileName)
@@ -134,9 +134,15 @@ def write_to_keepass(bw_organizations: Dict[str, BwOrganization]) -> None:
         organization_group: Group = py_kee_pass.add_group(
             destination_group=py_kee_pass.root_group, group_name=organization.name
         )
-        for collection in organization.collections.values():
+        collections = organization.collections
+        organization.collections = {}
+        organization_group.notes = organization.model_dump_json()
+        for collection in collections.values():
             collection_group = add_group_recursive(py_kee_pass, organization_group, collection.name)
-            for item in collection.items.values():
+            items = collection.items
+            collection.items = {}
+            collection_group.notes = collection.model_dump_json()
+            for item in items.values():
                 try:
                     add_entry(py_kee_pass, collection_group, item)
                 except Exception as e:  # pylint: disable=broad-except
