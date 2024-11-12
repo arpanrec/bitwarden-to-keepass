@@ -70,15 +70,27 @@ def add_entry(py_kee_pass: PyKeePass, group: Group, item: BwItem) -> Entry:
         username=item.login.username,
         password=item.login.password,
     )
-    try:
-        add_attachment(py_kee_pass, entry, item)
-    except Exception as e:  # pylint: disable=broad-except
-        LOGGER.error("Error adding attachment %s", e)
-        raise BitwardenException("Error adding attachment") from e
+    add_fields(entry, item)
+    add_attachment(py_kee_pass, entry, item)
+
     if item.login.totp:
-        entry.custom_properties.setdefault("TOTP", item.login.totp)
+        LOGGER.warning("Adding OTP for %s", item.login.totp)
+        entry.otp = item.login.totp
 
     return entry
+
+
+def add_fields(entry: Entry, item: BwItem) -> None:
+    """
+    Add fields to Keepass
+    """
+    all_field_names = []
+    for field in item.fields:
+        if field.name in all_field_names:
+            LOGGER.warning("Field with name %s already exists, Adding -1", field.name)
+            field.name = f"{field.name}-1"
+        all_field_names.append(field.name)
+        entry.set_custom_property(field.name, field.value, protect=False)
 
 
 def add_attachment(py_kee_pass: PyKeePass, entry: Entry, item: BwItem) -> None:
