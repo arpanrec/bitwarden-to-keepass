@@ -3,7 +3,6 @@ Writes the given data to a file at the specified path.
 """
 
 import logging
-import time
 import urllib.parse
 from typing import Dict, List, Union
 
