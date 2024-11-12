@@ -13,7 +13,6 @@ import logging
 import os
 import os.path
 import subprocess  # nosec B404
-import tempfile
 from typing import Dict, List, Optional
 
 from cachier import cachier
@@ -23,17 +22,21 @@ from . import BitwardenException
 LOGGER = logging.getLogger(__name__)
 
 
-@cachier()
-def download_file(item_id: str, attachment_id: str) -> str:
+def download_file(item_id: str, attachment_id: str, download_location: str) -> None:
     """
     Downloads a file from bitwarden.
     """
-    with tempfile.NamedTemporaryFile(delete=False) as attachment_path:
-        out = bw_exec(
-            ["get", "attachment", attachment_id, "--itemid", item_id, "--output", attachment_path.name], is_raw=False
-        )
-        LOGGER.info("Downloaded attachment %s, %s", attachment_id, out)
-        return attachment_path.name
+    absolute_download_location = os.path.abspath(download_location)
+    parent_dir = os.path.dirname(absolute_download_location)
+    if not os.path.exists(parent_dir):
+        os.makedirs(parent_dir)
+
+    if os.path.exists(absolute_download_location):
+        LOGGER.info("File already exists, skipping download")
+
+    bw_exec(
+        ["get", "attachment", attachment_id, "--itemid", item_id, "--output", absolute_download_location], is_raw=False
+    )
 
 
 @cachier()

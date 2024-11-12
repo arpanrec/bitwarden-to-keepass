@@ -17,6 +17,7 @@ Raises:
 import argparse
 import json
 import logging
+import os.path
 import time
 from typing import Any, Dict, List
 
@@ -26,6 +27,7 @@ from .keepass import write_to_keepass
 from .models import BwCollection, BwFolder, BwItem, BwOrganization
 
 LOGGER = logging.getLogger(__name__)
+ATTACHMENT_DIR = "bitwarden_dump_attachments"
 
 
 def main() -> None:
@@ -68,7 +70,8 @@ def main() -> None:
         if bw_item.attachments and len(bw_item.attachments) > 0:
             LOGGER.info("Item %s has attachments %s", bw_item.id, bw_item.attachments)
             for attachment in bw_item.attachments:
-                attachment.local_file_path = download_file(bw_item.id, attachment.id)
+                attachment.local_file_path = os.path.join(ATTACHMENT_DIR, bw_item.id, attachment.id)
+                download_file(bw_item.id, attachment.id, attachment.local_file_path)
         if not bw_item.organizationId:
             continue
 
@@ -93,8 +96,10 @@ def main() -> None:
 
     bw_folders: List[BwFolder] = [BwFolder(**folder) for folder in json.loads((bw_exec(["list", "folders"])))]
     LOGGER.info("Total Folders Fetched: %s", len(bw_folders))
-    # bw_exec.clear_cache()
+
     write_to_keepass(bw_organizations)
+
+    # bw_exec.clear_cache()
 
 
 if __name__ == "__main__":

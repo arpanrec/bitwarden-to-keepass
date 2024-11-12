@@ -64,12 +64,17 @@ def add_entry(py_kee_pass: PyKeePass, group: Group, item: BwItem) -> Entry:
             LOGGER.warning("No Password for %s, setting it to No Password", item.name)
             item.login.password = "No Password"
 
-    return py_kee_pass.add_entry(
+    entry: Entry = py_kee_pass.add_entry(
         destination_group=group,
         title=item.name,
         username=item.login.username,
         password=item.login.password,
     )
+
+    if item.login.totp:
+        entry.custom_properties.setdefault("TOTP", item.login.totp, "String")
+
+    return entry
 
 
 def write_to_keepass(bw_organizations: Dict[str, BwOrganization]) -> None:
