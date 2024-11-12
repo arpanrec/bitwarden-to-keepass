@@ -23,6 +23,7 @@ from typing import Any, Dict, List
 from . import BitwardenException
 from .cli import bw_exec
 from .models import BwCollection, BwFolder, BwItem, BwOrganization
+from .write_to_file import write_to_keepass
 
 LOGGER = logging.getLogger(__name__)
 
@@ -48,10 +49,10 @@ def main() -> None:
     bw_organizations: Dict[str, BwOrganization] = {
         organization["id"]: BwOrganization(**organization) for organization in bw_organizations_dict
     }
-    logging.info("Total Organizations Fetched: %s", len(bw_organizations))
+    LOGGER.info("Total Organizations Fetched: %s", len(bw_organizations))
 
     bw_collections_dict = json.loads((bw_exec(["list", "collections"])))
-    logging.info("Total Collections Fetched: %s", len(bw_collections_dict))
+    LOGGER.info("Total Collections Fetched: %s", len(bw_collections_dict))
 
     for bw_collection_dict in bw_collections_dict:
         bw_collection = BwCollection(**bw_collection_dict)
@@ -60,9 +61,9 @@ def main() -> None:
 
     # Fetch Organization Details
     bw_items_dict: List[Dict[str, Any]] = json.loads((bw_exec(["list", "items"])))
-    logging.info("Total Items Fetched: %s", len(bw_items_dict))
+    LOGGER.info("Total Items Fetched: %s", len(bw_items_dict))
     for bw_item_dict in bw_items_dict:
-        logging.debug("Processing Item %s", json.dumps(bw_item_dict))
+        LOGGER.debug("Processing Item %s", json.dumps(bw_item_dict))
         bw_item = BwItem(**bw_item_dict)
         if not bw_item.organizationId:
             continue
@@ -73,7 +74,7 @@ def main() -> None:
             raise BitwardenException(f"Item {bw_item.id} does not have any collection, but belongs to an organization")
 
         if len(bw_item.collectionIds) > 1:
-            logging.warning(
+            LOGGER.warning(
                 "Item %s belongs to multiple collections Just using the first one %s",
                 bw_item.id,
                 bw_item.collectionIds[0],
@@ -84,11 +85,13 @@ def main() -> None:
         #     collection = organization.collections[collection_id]
         #     collection.items[bw_item.id] = bw_item
 
-    logging.info("Total Items Fetched: %s", bw_organizations)
+    LOGGER.info("Total Items Fetched: %s", bw_organizations)
 
     bw_folders: List[BwFolder] = [BwFolder(**folder) for folder in json.loads((bw_exec(["list", "folders"])))]
-    logging.info("Total Folders Fetched: %s", len(bw_folders))
+    LOGGER.info("Total Folders Fetched: %s", len(bw_folders))
     # bw_exec.clear_cache()
+    write_to_keepass()
+
 
 if __name__ == "__main__":
     main()
