@@ -1,6 +1,23 @@
+"""
+This module defines Pydantic models for various Bitwarden entities.
+
+Classes:
+    BwItemLoginFido2Credentials: Represents Fido2 credentials associated with a Bitwarden login item.
+    BwItemLoginUri: Represents a URI associated with a Bitwarden login item.
+    BwItemLogin: Represents a Bitwarden login item.
+    BwItemPasswordHistory: Represents the password history of a Bitwarden item.
+    BwItemAttachment: Represents an attachment associated with a Bitwarden item.
+    BwField: Represents a custom field associated with a Bitwarden item.
+    BwItem: Represents a Bitwarden item.
+    BwCollection: Represents a collection of Bitwarden items.
+    BwOrganization: Represents a Bitwarden organization.
+    BwFolder: Represents a folder in Bitwarden.
+
+"""
+
 from typing import Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class BwItemLoginFido2Credentials(BaseModel):

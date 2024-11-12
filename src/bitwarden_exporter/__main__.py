@@ -1,6 +1,21 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+"""
+This script interacts with the Bitwarden CLI to export data from a Bitwarden vault.
+
+Functions:
+    bw_exec(cmd: List[str], ret_encoding: str = "UTF-8", env_vars: Optional[Dict[str, str]] = None) -> str:
+        Executes a Bitwarden CLI command and returns the output as a string.
+    
+    main() -> None:
+        Main function that handles the export process, including fetching organizations,
+          collections, items, and folders from the Bitwarden vault.
+
+Raises:
+    BitwardenException: If there is an error executing a Bitwarden CLI command or if the vault is not unlocked.
+
+"""
 import argparse
 import json
 import logging
@@ -16,6 +31,9 @@ LOGGER = logging.getLogger(__name__)
 
 
 def bw_exec(cmd: List[str], ret_encoding: str = "UTF-8", env_vars: Optional[Dict[str, str]] = None) -> str:
+    """
+    Executes a Bitwarden CLI command and returns the output as a string.
+    """
     cmd = ["bw"] + cmd + ["--raw"]
 
     cli_env_vars = os.environ
@@ -36,6 +54,9 @@ def bw_exec(cmd: List[str], ret_encoding: str = "UTF-8", env_vars: Optional[Dict
 
 
 def main() -> None:
+    """
+    Main function that handles the export process, including fetching organizations,
+    """
     bw_current_status = json.loads(bw_exec(["status"]))
 
     parser = argparse.ArgumentParser()

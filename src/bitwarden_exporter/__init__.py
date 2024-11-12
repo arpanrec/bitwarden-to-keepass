@@ -1,3 +1,14 @@
+"""
+This module initializes logging for the Bitwarden Exporter application and defines a custom exception.
+
+Attributes:
+    IS_DEBUG (bool): Indicates if the application is running in debug mode.
+    LOGGING_LEVEL (int): The logging level for the application.
+
+Classes:
+    BitwardenException: Base exception for Bitwarden Export.
+"""
+
 import logging
 import os
 import sys

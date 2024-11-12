@@ -1,9 +1,16 @@
+"""
+Writes the given data to a file at the specified path.
+"""
+
 from typing import Union
 
 from . import BitwardenException
 
 
 def write_to_file(data: str, path: Union[str, bytes]) -> None:
+    """
+    Function to write to a file.
+    """
     if isinstance(data, str):
         mode = "w"
         sys_encoding = "UTF-8"
@@ -17,7 +24,7 @@ def write_to_file(data: str, path: Union[str, bytes]) -> None:
         file_attach.write(data)
 
 
-def write_to_keepass():
+def write_to_keepass() -> None:
     """
     Function to write to Keepass
     """
