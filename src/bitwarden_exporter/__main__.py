@@ -18,19 +18,18 @@ import argparse
 import json
 import logging
 import os.path
-import tempfile
 import time
 from typing import Any, Dict, List
 
 from . import BitwardenException, is_debug
 from .cli import bw_exec, download_file
-from .keepass import write_to_keepass
+from .keepass import process_organization
 from .models import BwCollection, BwFolder, BwItem, BwOrganization
 
 LOGGER = logging.getLogger(__name__)
 
 
-def main() -> None:
+def main() -> None:  # pylint: disable=too-many-locals
     """
     Main function that handles the export process, including fetching organizations,
     """
@@ -38,20 +37,27 @@ def main() -> None:
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-f", "--kdbx-file", help="Bitwarden Dump Location", default=f"bitwarden_dump_{int(time.time())}.kdbx"
+        "-l", "--export-location", help="Bitwarden Export Location", default=f"bitwarden_dump_{int(time.time())}.kdbx"
     )
-    parser.add_argument("-p", "--kdbx-password", help="Bitwarden Dump Password", required=True)
-    args, _ = parser.parse_known_args()
+    parser.add_argument("-p", "--export-password", help="Bitwarden Export Password", required=True)
+    parser.add_argument(
+        "--allow-duplicates",
+        help="Allow Duplicates entries in Export, In bitwarden each item can be in multiple collections",
+        action="store_true",
+        default=False,
+    )
+    parser.add_argument(
+        "--tmp-dir",
+        help="Temporary Directory to store attachments",
+        default=os.path.abspath("bitwarden_dump_attachments"),
+    )
 
-    kdbx_file = args.kdbx_file
-    kdbx_password = args.kdbx_password
+    args, _ = parser.parse_known_args()
 
     if bw_current_status["status"] != "unlocked":
         raise BitwardenException("Vault is not unlocked")
 
-    # Fetch Organization Details
     bw_organizations_dict = json.loads((bw_exec(["list", "organizations"])))
-    # {"id", BwOrganization}
     bw_organizations: Dict[str, BwOrganization] = {
         organization["id"]: BwOrganization(**organization) for organization in bw_organizations_dict
     }
@@ -67,21 +73,14 @@ def main() -> None:
 
     bw_items_dict: List[Dict[str, Any]] = json.loads((bw_exec(["list", "items"])))
 
-    if is_debug():
-        attachment_dir = os.path.abspath("bitwarden_dump_attachments")
-    else:
-        with tempfile.TemporaryDirectory(delete=True) as temp_dir:
-            attachment_dir = temp_dir
-
     LOGGER.info("Total Items Fetched: %s", len(bw_items_dict))
     for bw_item_dict in bw_items_dict:
-        LOGGER.debug("Processing Item %s", json.dumps(bw_item_dict))
         bw_item = BwItem(**bw_item_dict)
-        LOGGER.info("Processing Item %s", bw_item.name)
+        LOGGER.debug("Processing Item %s", bw_item.name)
         if bw_item.attachments and len(bw_item.attachments) > 0:
             LOGGER.info("Item %s has attachments %s", bw_item.id, bw_item.attachments)
             for attachment in bw_item.attachments:
-                attachment.local_file_path = os.path.join(attachment_dir, bw_item.id, attachment.id)
+                attachment.local_file_path = os.path.join(args.tmp_dir, bw_item.id, attachment.id)
                 download_file(bw_item.id, attachment.id, attachment.local_file_path)
         if not bw_item.organizationId:
             continue
@@ -91,26 +90,29 @@ def main() -> None:
         if not bw_item.collectionIds or len(bw_item.collectionIds) < 1:
             raise BitwardenException(f"Item {bw_item.id} does not have any collection, but belongs to an organization")
 
-        if len(bw_item.collectionIds) > 1:
+        if len(bw_item.collectionIds) > 1 and args.allow_duplicates:
             LOGGER.warning(
                 "Item %s belongs to multiple collections Just using the first one %s",
                 bw_item.id,
-                bw_item.collectionIds[0],
+                organization.collections[bw_item.collectionIds[0]].name,
             )
-        organization.collections[bw_item.collectionIds[0]].items[bw_item.id] = bw_item
-
-        # for collection_id in bw_item.collectionIds:
-        #     collection = organization.collections[collection_id]
-        #     collection.items[bw_item.id] = bw_item
+            organization.collections[bw_item.collectionIds[0]].items[bw_item.id] = bw_item
+        else:
+            for collection_id in bw_item.collectionIds:
+                collection = organization.collections[collection_id]
+                collection.items[bw_item.id] = bw_item
 
     LOGGER.info("Total Items Fetched: %s", bw_organizations)
 
     bw_folders: List[BwFolder] = [BwFolder(**folder) for folder in json.loads((bw_exec(["list", "folders"])))]
     LOGGER.info("Total Folders Fetched: %s", len(bw_folders))
 
-    write_to_keepass(bw_organizations, kdbx_file, kdbx_password)
+    process_organization(bw_organizations, args.export_location, args.export_password)
 
-    # bw_exec.clear_cache()
+    if not is_debug():
+        LOGGER.info("Removing Temporary Directory %s", args.tmp_dir)
+        os.rmdir(args.tmp_dir)
+        bw_exec.clear_cache()
 
 
 if __name__ == "__main__":

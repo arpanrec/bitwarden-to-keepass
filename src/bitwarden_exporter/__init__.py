@@ -11,6 +11,10 @@ import sys
 
 
 def is_debug() -> bool:
+    """
+    Function to check if debug is enabled.
+    """
+
     enabled: bool = False
     if str(os.environ.get("DEBUG", "False")).lower() in ["true", "1", "yes"]:
         enabled = True

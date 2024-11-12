@@ -59,7 +59,4 @@ def bw_exec(
     if len(command_out.stderr) > 0:
         raise BitwardenException(f"Error in executing command {command_out.stderr}")
     command_out.check_returncode()
-    if len(command_out.stdout) > 0:
-        return command_out.stdout
-
-    return ""
+    return command_out.stdout
