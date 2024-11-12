@@ -43,11 +43,10 @@ def add_group_recursive(py_kee_pass: PyKeePass, parent_group: Group, group_path:
         existing_subgroups: List[Group] = parent_group.subgroups
         for subgroup in existing_subgroups:
             if subgroup.name == group_name:
-                add_group_recursive(py_kee_pass, subgroup, "/".join(group_path.split("/")[1:]))
-        group = py_kee_pass.add_group(destination_group=parent_group, group_name=group_name)
-        add_group_recursive(py_kee_pass, group, "/".join(group_path.split("/")[1:]))
-    else:
-        return py_kee_pass.add_group(parent_group, group_name=group_path)
+                return add_group_recursive(py_kee_pass, subgroup, "/".join(group_path.split("/")[1:]))
+        new_group = py_kee_pass.add_group(parent_group, group_name=group_name)
+        return add_group_recursive(py_kee_pass, new_group, "/".join(group_path.split("/")[1:]))
+    return py_kee_pass.add_group(parent_group, group_name=group_path)
 
 
 def add_entry(py_kee_pass: PyKeePass, group: Group, item: BwItem) -> Entry:
