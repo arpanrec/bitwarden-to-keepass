@@ -38,9 +38,13 @@ def main() -> None:
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "-d", "--directory", help="Bitwarden Dump Location", default=f"bitwarden_dump_{int(time.time())}"
+        "-f", "--kdbx-file", help="Bitwarden Dump Location", default=f"bitwarden_dump_{int(time.time())}.kdbx"
     )
-    _, _ = parser.parse_known_args()
+    parser.add_argument("-p", "--kdbx-password", help="Bitwarden Dump Password", required=True)
+    args, _ = parser.parse_known_args()
+
+    kdbx_file = args.kdbx_file
+    kdbx_password = args.kdbx_password
 
     if bw_current_status["status"] != "unlocked":
         raise BitwardenException("Vault is not unlocked")
@@ -104,7 +108,7 @@ def main() -> None:
     bw_folders: List[BwFolder] = [BwFolder(**folder) for folder in json.loads((bw_exec(["list", "folders"])))]
     LOGGER.info("Total Folders Fetched: %s", len(bw_folders))
 
-    write_to_keepass(bw_organizations)
+    write_to_keepass(bw_organizations, kdbx_file, kdbx_password)
 
     # bw_exec.clear_cache()
 

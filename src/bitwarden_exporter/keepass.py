@@ -122,14 +122,12 @@ def add_attachment(py_kee_pass: PyKeePass, entry: Entry, item: BwItem) -> None:
             entry.add_attachment(binary_id, attachment.fileName)
 
 
-def write_to_keepass(bw_organizations: Dict[str, BwOrganization]) -> None:
+def write_to_keepass(bw_organizations: Dict[str, BwOrganization], kdbx_file: str, kdbx_password: str) -> None:
     """
     Function to write to Keepass
     """
-    epoch_time = int(time.time())
-    file_name = f"bitwarden_dump_{epoch_time}.kdbx"
-    LOGGER.info("Creating Keepass Database: %s, Password: password", file_name)
-    py_kee_pass: PyKeePass = create_database(file_name, password="password")
+    LOGGER.info("Creating Keepass Database: %s, Password: password", kdbx_file)
+    py_kee_pass: PyKeePass = create_database(kdbx_file, password=kdbx_password)
     for organization in bw_organizations.values():
         organization_group: Group = py_kee_pass.add_group(
             destination_group=py_kee_pass.root_group, group_name=organization.name
