@@ -18,13 +18,12 @@ import argparse
 import json
 import logging
 import os.path
-import shutil
 import time
 from typing import Any, Dict, List
 
-from .keepass import KeePassStorage
-from . import BitwardenException, is_debug
+from . import BitwardenException
 from .cli import bw_exec, download_file
+from .keepass import KeePassStorage
 from .models import BwCollection, BwFolder, BwItem, BwOrganization
 
 LOGGER = logging.getLogger(__name__)
@@ -112,8 +111,8 @@ def main() -> None:  # pylint: disable=too-many-locals
     bw_folders: List[BwFolder] = [BwFolder(**folder) for folder in json.loads((bw_exec(["list", "folders"])))]
     LOGGER.info("Total Folders Fetched: %s", len(bw_folders))
 
-    storage = KeePassStorage(args.export_location, args.export_password)
-    storage.process_organization(bw_organizations)
+    with KeePassStorage(args.export_location, args.export_password) as storage:
+        storage.process_organization(bw_organizations)
 
     # if not is_debug():
     #     LOGGER.info("Removing Temporary Directory %s", args.tmp_dir)

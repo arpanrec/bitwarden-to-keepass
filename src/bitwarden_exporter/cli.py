@@ -15,8 +15,6 @@ import os.path
 import subprocess  # nosec B404
 from typing import Dict, List, Optional
 
-from cachier import cachier
-
 from . import BitwardenException
 
 LOGGER = logging.getLogger(__name__)

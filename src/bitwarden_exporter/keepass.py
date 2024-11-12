@@ -4,7 +4,8 @@ Writes the given data to a file at the specified path.
 
 import logging
 import urllib.parse
-from typing import Dict, List, Union
+from types import TracebackType
+from typing import Dict, List, Union, Optional, Type
 
 from pykeepass import PyKeePass, create_database  # type: ignore
 from pykeepass.entry import Entry  # type: ignore
@@ -41,10 +42,34 @@ class KeePassStorage:
     __py_kee_pass: PyKeePass
 
     def __init__(self, kdbx_file: str, kdbx_password: str) -> None:
-        LOGGER.info("Creating Keepass Database: %s, Password: password", kdbx_file)
-        self.__py_kee_pass = create_database(kdbx_file, password=kdbx_password)
+        self.__kdbx_file = kdbx_file
+        self.__kdbx_password = kdbx_password
 
-    def add_group_recursive(self, parent_group: Group, group_path: str) -> Group:
+    def __enter__(self) -> "KeePassStorage":
+        LOGGER.info("Creating Keepass Database: %s, Password: password", self.__kdbx_file)
+        self.__py_kee_pass = create_database(self.__kdbx_file, password=self.__kdbx_password)
+        return self
+
+    def __exit__(
+        self,
+        exc_type: Optional[Type[BaseException]],
+        exc_value: Optional[BaseException],
+        traceback: Optional[TracebackType],
+    ) -> Optional[bool]:
+        try:
+            self.__py_kee_pass.save()
+            LOGGER.info("Keepass Database Saved")
+        except Exception as e:  # pylint: disable=broad-except
+            LOGGER.error("Error in saving Keepass Database %s", e)
+            raise BitwardenException("Error in saving Keepass Database") from e
+
+        if exc_type is not None:
+            LOGGER.error("Error in processing %s", exc_value)
+            raise BitwardenException("Error in processing") from exc_value
+
+        return True
+
+    def __add_group_recursive(self, parent_group: Group, group_path: str) -> Group:
         """
         Recursively add group to Keepass
         """
@@ -54,12 +79,12 @@ class KeePassStorage:
             existing_subgroups: List[Group] = parent_group.subgroups
             for subgroup in existing_subgroups:
                 if subgroup.name == group_name:
-                    return self.add_group_recursive(subgroup, "/".join(group_path.split("/")[1:]))
+                    return self.__add_group_recursive(subgroup, "/".join(group_path.split("/")[1:]))
             new_group = self.__py_kee_pass.add_group(parent_group, group_name=group_name)
-            return self.add_group_recursive(new_group, "/".join(group_path.split("/")[1:]))
+            return self.__add_group_recursive(new_group, "/".join(group_path.split("/")[1:]))
         return self.__py_kee_pass.add_group(parent_group, group_name=group_path)
 
-    def add_entry(self, group: Group, bw_item: BwItem) -> Entry:
+    def __add_entry(self, group: Group, bw_item: BwItem) -> Entry:
         """
         Add an entry to Keepass
         """
@@ -70,23 +95,24 @@ class KeePassStorage:
             password="" if (not bw_item.login) or (not bw_item.login.password) else bw_item.login.password,
         )
         LOGGER.info("Adding Entry %s", bw_item.name)
-        self.add_fields(entry, bw_item)
-        self.add_attachment(entry, bw_item)
-        self.add_otp(entry, bw_item)
+        self.__add_fields(entry, bw_item)
+        self.__add_attachment(entry, bw_item)
+        self.__add_otp(entry, bw_item)
 
         if bw_item.notes:
             entry.notes = bw_item.notes
 
         return entry
 
-    def add_otp(self, entry: Entry, bw_item: BwItem) -> None:
+    @staticmethod
+    def __add_otp(entry: Entry, bw_item: BwItem) -> None:
         """
         Add OTP to Keepass
         """
         if (not bw_item.login) or (not bw_item.login.totp):
             return None
 
-        LOGGER.info(self, "Adding OTP for %s", bw_item.name)
+        LOGGER.info("Adding OTP for %s", bw_item.name)
         if not bw_item.login.totp.startswith("otpauth://"):
             url_safe_totp = bw_item.login.totp.replace(" ", "").lower()
             url_safe_name = urllib.parse.quote_plus(bw_item.name)
@@ -98,7 +124,8 @@ class KeePassStorage:
         entry.otp = bw_item.login.totp
         return None
 
-    def add_fields(self, entry: Entry, item: BwItem) -> None:
+    @staticmethod
+    def __add_fields(entry: Entry, item: BwItem) -> None:
         """
         Add fields to Keepass
         """
@@ -114,7 +141,7 @@ class KeePassStorage:
             all_field_names.append(field.name)
             entry.set_custom_property(field.name, field.value, protect=False)
 
-    def add_attachment(self, entry: Entry, item: BwItem) -> None:
+    def __add_attachment(self, entry: Entry, item: BwItem) -> None:
         """
         Add an attachment to Keepass
         """
@@ -130,7 +157,7 @@ class KeePassStorage:
                 binary_id = self.__py_kee_pass.add_binary(data=file_attach.read(), protected=False, compressed=False)
                 entry.add_attachment(binary_id, attachment.fileName)
 
-    def process_organization(self, bw_organizations: Dict[str, BwOrganization]) -> PyKeePass:
+    def process_organization(self, bw_organizations: Dict[str, BwOrganization]) -> None:
         """
         Function to write to Keepass
         """
@@ -145,14 +172,14 @@ class KeePassStorage:
             organization_group.notes = organization.model_dump_json()
             for collection in collections.values():
                 LOGGER.info("%s:: Processing Collection %s", organization.name, collection.name)
-                collection_group = self.add_group_recursive(organization_group, collection.name)
+                collection_group = self.__add_group_recursive(organization_group, collection.name)
                 items = collection.items
                 collection.items = {}
                 collection_group.notes = collection.model_dump_json()
                 for item in items.values():
                     LOGGER.info("%s::%s:: Processing Item %s", organization.name, collection.name, item.name)
                     try:
-                        self.add_entry(collection_group, item)
+                        self.__add_entry(collection_group, item)
                     except Exception as e:  # pylint: disable=broad-except
                         LOGGER.error("Error adding entry %s", e)
                         raise BitwardenException("Error adding entry") from e
