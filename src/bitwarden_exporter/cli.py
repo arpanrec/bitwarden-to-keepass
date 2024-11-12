@@ -8,6 +8,7 @@ Exceptions:
     BitwardenException:
         Raised when there is an error executing a Bitwarden CLI command.
 """
+
 import logging
 import os
 import os.path
@@ -21,19 +22,17 @@ from . import BitwardenException
 
 LOGGER = logging.getLogger(__name__)
 
+
 def download_file(item_id: str, attachment_id: str) -> str:
     """
     Downloads a file from bitwarden.
     """
-    attachment_path = tempfile.NamedTemporaryFile(delete=True)
-
-    out = bw_exec(
-        ["get", "attachment", attachment_id, "--itemid", item_id, "--output", attachment_path.name], is_raw=False
-    )
-
-    LOGGER.info("Downloaded attachment %s, %s", attachment_id, out)
-
-    return attachment_path.name
+    with tempfile.NamedTemporaryFile(delete=False) as attachment_path:
+        out = bw_exec(
+            ["get", "attachment", attachment_id, "--itemid", item_id, "--output", attachment_path.name], is_raw=False
+        )
+        LOGGER.info("Downloaded attachment %s, %s", attachment_id, out)
+        return attachment_path.name
 
 
 @cachier()
