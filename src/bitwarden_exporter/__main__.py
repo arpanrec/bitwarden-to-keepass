@@ -18,12 +18,13 @@ import argparse
 import json
 import logging
 import os.path
+import shutil
 import time
 from typing import Any, Dict, List
 
+from .keepass import KeePassStorage
 from . import BitwardenException, is_debug
 from .cli import bw_exec, download_file
-from .keepass import process_organization
 from .models import BwCollection, BwFolder, BwItem, BwOrganization
 
 LOGGER = logging.getLogger(__name__)
@@ -33,7 +34,6 @@ def main() -> None:  # pylint: disable=too-many-locals
     """
     Main function that handles the export process, including fetching organizations,
     """
-    bw_current_status = json.loads(bw_exec(["status"]))
 
     parser = argparse.ArgumentParser()
     parser.add_argument(
@@ -53,7 +53,7 @@ def main() -> None:  # pylint: disable=too-many-locals
     )
 
     args, _ = parser.parse_known_args()
-
+    bw_current_status = json.loads(bw_exec(["status"]))
     if bw_current_status["status"] != "unlocked":
         raise BitwardenException("Vault is not unlocked")
 
@@ -78,9 +78,14 @@ def main() -> None:  # pylint: disable=too-many-locals
         bw_item = BwItem(**bw_item_dict)
         LOGGER.debug("Processing Item %s", bw_item.name)
         if bw_item.attachments and len(bw_item.attachments) > 0:
-            LOGGER.info("Item %s has attachments %s", bw_item.id, bw_item.attachments)
             for attachment in bw_item.attachments:
                 attachment.local_file_path = os.path.join(args.tmp_dir, bw_item.id, attachment.id)
+                LOGGER.info(
+                    "%s:: Downloading Attachment %s to %s",
+                    bw_item.name,
+                    attachment.fileName,
+                    attachment.local_file_path,
+                )
                 download_file(bw_item.id, attachment.id, attachment.local_file_path)
         if not bw_item.organizationId:
             continue
@@ -102,17 +107,19 @@ def main() -> None:  # pylint: disable=too-many-locals
                 collection = organization.collections[collection_id]
                 collection.items[bw_item.id] = bw_item
 
-    LOGGER.info("Total Items Fetched: %s", bw_organizations)
+    LOGGER.info("Total Items Fetched: %s", len(bw_items_dict))
 
     bw_folders: List[BwFolder] = [BwFolder(**folder) for folder in json.loads((bw_exec(["list", "folders"])))]
     LOGGER.info("Total Folders Fetched: %s", len(bw_folders))
 
-    process_organization(bw_organizations, args.export_location, args.export_password)
+    storage = KeePassStorage(args.export_location, args.export_password)
+    storage.process_organization(bw_organizations)
 
-    if not is_debug():
-        LOGGER.info("Removing Temporary Directory %s", args.tmp_dir)
-        os.rmdir(args.tmp_dir)
-        bw_exec.clear_cache()
+    # if not is_debug():
+    #     LOGGER.info("Removing Temporary Directory %s", args.tmp_dir)
+    #     shutil.rmtree(args.tmp_dir)
+    #     LOGGER.info("Clearing Bitwarden Cache")
+    #     bw_exec.clear_cache()
 
 
 if __name__ == "__main__":

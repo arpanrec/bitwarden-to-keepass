@@ -32,11 +32,11 @@ def download_file(item_id: str, attachment_id: str, download_location: str) -> N
 
     if os.path.exists(download_location):
         LOGGER.info("File already exists, skipping download")
+        return
 
     bw_exec(["get", "attachment", attachment_id, "--itemid", item_id, "--output", download_location], is_raw=False)
 
 
-@cachier()
 def bw_exec(
     cmd: List[str], ret_encoding: str = "UTF-8", env_vars: Optional[Dict[str, str]] = None, is_raw: bool = True
 ) -> str:
