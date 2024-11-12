@@ -17,38 +17,14 @@ Raises:
 import argparse
 import json
 import logging
-import os.path
-import subprocess  # nosec B404
 import time
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from . import BitwardenException
 from .models import BwCollection, BwFolder, BwItem, BwOrganization
+from .cli import bw_exec
 
 LOGGER = logging.getLogger(__name__)
-
-
-def bw_exec(cmd: List[str], ret_encoding: str = "UTF-8", env_vars: Optional[Dict[str, str]] = None) -> str:
-    """
-    Executes a Bitwarden CLI command and returns the output as a string.
-    """
-    cmd = ["bw"] + cmd + ["--raw"]
-
-    cli_env_vars = os.environ
-
-    if env_vars is not None:
-        cli_env_vars.update(env_vars)
-    print(f"Executing CLI :: {' '.join(cmd)}")
-    command_out = subprocess.run(
-        cmd, capture_output=True, check=False, encoding=ret_encoding, env=cli_env_vars
-    )  # nosec B603
-    if len(command_out.stderr) > 0:
-        raise BitwardenException(f"Error in executing command {command_out.stderr}")
-    command_out.check_returncode()
-    if len(command_out.stdout) > 0:
-        return command_out.stdout
-
-    return ""
 
 
 def main() -> None:
@@ -112,7 +88,7 @@ def main() -> None:
 
     bw_folders: List[BwFolder] = [BwFolder(**folder) for folder in json.loads((bw_exec(["list", "folders"])))]
     logging.info("Total Folders Fetched: %s", len(bw_folders))
-
+    # bw_exec.clear_cache()
 
 if __name__ == "__main__":
     main()

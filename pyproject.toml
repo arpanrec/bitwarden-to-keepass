@@ -31,6 +31,8 @@ scripts = { "bitwarden-exporter" = "bitwarden_exporter.__main__:main" }
 python = "^3.10"
 gnupg = "2.3.1"
 pydantic = "2.9.2"
+pykeepass = "^4.1.0.post1"
+cachier = "^3.1.2"
 
 [tool.poetry.group.dev.dependencies]
 bandit = "1.7.10"
