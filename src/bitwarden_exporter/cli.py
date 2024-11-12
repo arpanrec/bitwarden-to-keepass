@@ -1,7 +1,18 @@
+"""
+This module provides a command-line interface (CLI) for interacting with Bitwarden.
+
+Functions:
+    bw_exec(cmd: List[str], ret_encoding: str = "UTF-8", env_vars: Optional[Dict[str, str]] = None) -> str:
+
+Exceptions:
+    BitwardenException:
+        Raised when there is an error executing a Bitwarden CLI command.
+"""
+
 import os
 import os.path
 import subprocess  # nosec B404
-from typing import List, Optional, Dict
+from typing import Dict, List, Optional
 
 from cachier import cachier
 

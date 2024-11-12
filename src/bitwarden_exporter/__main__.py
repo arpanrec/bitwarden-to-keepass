@@ -21,8 +21,8 @@ import time
 from typing import Any, Dict, List
 
 from . import BitwardenException
-from .models import BwCollection, BwFolder, BwItem, BwOrganization
 from .cli import bw_exec
+from .models import BwCollection, BwFolder, BwItem, BwOrganization
 
 LOGGER = logging.getLogger(__name__)
 

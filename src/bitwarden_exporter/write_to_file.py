@@ -5,8 +5,9 @@ Writes the given data to a file at the specified path.
 import time
 from typing import Union
 
-from . import BitwardenException
 from pykeepass import PyKeePass, create_database
+
+from . import BitwardenException
 
 
 def write_to_file(data: str, path: Union[str, bytes]) -> None:
