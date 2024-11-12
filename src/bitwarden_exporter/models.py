@@ -1,6 +1,6 @@
 from typing import Dict, List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class BwItemLoginFido2Credentials(BaseModel):
@@ -82,7 +82,7 @@ class BwItem(BaseModel):
     Bitwarden Item Model
     """
 
-    passwordHistory: List[BwItemPasswordHistory] = []
+    passwordHistory: Optional[List[BwItemPasswordHistory]] = None
     revisionDate: str
     creationDate: str
     deletedDate: Optional[str] = None

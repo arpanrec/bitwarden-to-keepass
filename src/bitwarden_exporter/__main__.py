@@ -67,6 +67,7 @@ def main() -> None:
     bw_items_dict: List[Dict[str, Any]] = json.loads((bw_exec(["list", "items"])))
     logging.info("Total Items Fetched: %s", len(bw_items_dict))
     for bw_item_dict in bw_items_dict:
+        logging.debug("Processing Item %s", json.dumps(bw_item_dict))
         bw_item = BwItem(**bw_item_dict)
         if not bw_item.organizationId:
             continue
