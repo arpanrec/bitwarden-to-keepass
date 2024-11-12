@@ -26,17 +26,14 @@ def download_file(item_id: str, attachment_id: str, download_location: str) -> N
     """
     Downloads a file from bitwarden.
     """
-    absolute_download_location = os.path.abspath(download_location)
-    parent_dir = os.path.dirname(absolute_download_location)
+    parent_dir = os.path.dirname(download_location)
     if not os.path.exists(parent_dir):
         os.makedirs(parent_dir)
 
-    if os.path.exists(absolute_download_location):
+    if os.path.exists(download_location):
         LOGGER.info("File already exists, skipping download")
 
-    bw_exec(
-        ["get", "attachment", attachment_id, "--itemid", item_id, "--output", absolute_download_location], is_raw=False
-    )
+    bw_exec(["get", "attachment", attachment_id, "--itemid", item_id, "--output", download_location], is_raw=False)
 
 
 @cachier()

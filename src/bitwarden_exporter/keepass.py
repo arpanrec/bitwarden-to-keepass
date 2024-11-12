@@ -70,11 +70,30 @@ def add_entry(py_kee_pass: PyKeePass, group: Group, item: BwItem) -> Entry:
         username=item.login.username,
         password=item.login.password,
     )
-
+    try:
+        add_attachment(py_kee_pass, entry, item)
+    except Exception as e:  # pylint: disable=broad-except
+        LOGGER.error("Error adding attachment %s", e)
+        raise BitwardenException("Error adding attachment") from e
     if item.login.totp:
         entry.custom_properties.setdefault("TOTP", item.login.totp, "String")
 
     return entry
+
+
+def add_attachment(py_kee_pass: PyKeePass, entry: Entry, item: BwItem) -> None:
+    """
+    Add an attachment to Keepass
+    """
+    all_names = []
+    for attachment in item.attachments:
+        if attachment.fileName in all_names:
+            LOGGER.warning("Attachment with name %s already exists, Adding -1", attachment.fileName)
+            attachment.fileName = f"{attachment.fileName}-1"
+        all_names.append(attachment.fileName)
+        with open(attachment.local_file_path, "rb") as file_attach:
+            binary_id = py_kee_pass.add_binary(data=file_attach, protected=False, compressed=False)
+            entry.add_attachment(binary_id, attachment.fileName)
 
 
 def write_to_keepass(bw_organizations: Dict[str, BwOrganization]) -> None:
@@ -96,6 +115,6 @@ def write_to_keepass(bw_organizations: Dict[str, BwOrganization]) -> None:
                     add_entry(py_kee_pass, collection_group, item)
                 except Exception as e:  # pylint: disable=broad-except
                     LOGGER.error("Error adding entry %s", e)
-                    continue
+                    raise BitwardenException("Error adding entry") from e
 
     py_kee_pass.save()

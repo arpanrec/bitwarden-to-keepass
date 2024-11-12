@@ -27,7 +27,7 @@ from .keepass import write_to_keepass
 from .models import BwCollection, BwFolder, BwItem, BwOrganization
 
 LOGGER = logging.getLogger(__name__)
-ATTACHMENT_DIR = "bitwarden_dump_attachments"
+ATTACHMENT_DIR = os.path.abspath("bitwarden_dump_attachments")
 
 
 def main() -> None:
