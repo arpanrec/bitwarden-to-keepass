@@ -6,7 +6,7 @@ import logging
 import time
 from typing import Union
 
-from pykeepass import PyKeePass, create_database
+from pykeepass import create_database
 
 from . import BitwardenException
 

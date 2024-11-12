@@ -81,6 +81,7 @@ class BwItemAttachment(BaseModel):
     size: str
     sizeName: str
     url: str
+    local_file_path: Optional[str] = None
 
 
 class BwField(BaseModel):

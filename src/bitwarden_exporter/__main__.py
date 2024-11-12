@@ -21,7 +21,7 @@ import time
 from typing import Any, Dict, List
 
 from . import BitwardenException
-from .cli import bw_exec
+from .cli import bw_exec, download_file
 from .models import BwCollection, BwFolder, BwItem, BwOrganization
 from .write_to_file import write_to_keepass
 
@@ -59,12 +59,16 @@ def main() -> None:
         organization = bw_organizations[bw_collection.organizationId]
         organization.collections[bw_collection.id] = bw_collection
 
-    # Fetch Organization Details
     bw_items_dict: List[Dict[str, Any]] = json.loads((bw_exec(["list", "items"])))
     LOGGER.info("Total Items Fetched: %s", len(bw_items_dict))
     for bw_item_dict in bw_items_dict:
         LOGGER.debug("Processing Item %s", json.dumps(bw_item_dict))
         bw_item = BwItem(**bw_item_dict)
+        LOGGER.info("Processing Item %s", bw_item.name)
+        if bw_item.attachments and len(bw_item.attachments) > 0:
+            LOGGER.info("Item %s has attachments %s", bw_item.id, bw_item.attachments)
+            for attachment in bw_item.attachments:
+                attachment.local_file_path = download_file(bw_item.id, attachment.id)
         if not bw_item.organizationId:
             continue
 
