@@ -22,8 +22,8 @@ from typing import Any, Dict, List
 
 from . import BitwardenException
 from .cli import bw_exec, download_file
-from .models import BwCollection, BwFolder, BwItem, BwOrganization
 from .keepass import write_to_keepass
+from .models import BwCollection, BwFolder, BwItem, BwOrganization
 
 LOGGER = logging.getLogger(__name__)
 

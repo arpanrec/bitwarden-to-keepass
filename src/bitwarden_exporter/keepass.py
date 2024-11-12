@@ -4,14 +4,14 @@ Writes the given data to a file at the specified path.
 
 import logging
 import time
-from typing import Union, Dict, List
+from typing import Dict, List, Union
 
-from pykeepass import create_database, PyKeePass  # type: ignore
+from pykeepass import PyKeePass, create_database  # type: ignore
 from pykeepass.entry import Entry  # type: ignore
 from pykeepass.group import Group  # type: ignore
 
 from . import BitwardenException
-from .models import BwOrganization, BwItem, BwItemLogin
+from .models import BwItem, BwItemLogin, BwOrganization
 
 LOGGER = logging.getLogger(__name__)
 
@@ -64,6 +64,7 @@ def add_entry(py_kee_pass: PyKeePass, group: Group, item: BwItem) -> Entry:
         if not item.login.password:
             LOGGER.warning("No Password for %s, setting it to No Password", item.name)
             item.login.password = "No Password"
+
     return py_kee_pass.add_entry(
         destination_group=group,
         title=item.name,

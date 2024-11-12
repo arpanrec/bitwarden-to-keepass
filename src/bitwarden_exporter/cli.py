@@ -52,7 +52,7 @@ def bw_exec(
 
     if env_vars is not None:
         cli_env_vars.update(env_vars)
-    LOGGER.debug(f"Executing CLI :: {' '.join(cmd)}")
+    LOGGER.debug("Executing CLI :: %s", {" ".join(cmd)})
     command_out = subprocess.run(
         cmd, capture_output=True, check=False, encoding=ret_encoding, env=cli_env_vars
     )  # nosec B603
