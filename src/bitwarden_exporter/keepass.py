@@ -90,7 +90,7 @@ def write_to_keepass(bw_organizations: Dict[str, BwOrganization]) -> None:
             for item in collection.items.values():
                 try:
                     add_entry(py_kee_pass, collection_group, item)
-                except Exception as e:
+                except Exception as e:  # pylint: disable=broad-except
                     LOGGER.error("Error adding entry %s", e)
                     continue
 
