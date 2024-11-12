@@ -23,7 +23,7 @@ from typing import Any, Dict, List
 from . import BitwardenException
 from .cli import bw_exec, download_file
 from .models import BwCollection, BwFolder, BwItem, BwOrganization
-from .write_to_file import write_to_keepass
+from .keepass import write_to_keepass
 
 LOGGER = logging.getLogger(__name__)
 
@@ -94,7 +94,7 @@ def main() -> None:
     bw_folders: List[BwFolder] = [BwFolder(**folder) for folder in json.loads((bw_exec(["list", "folders"])))]
     LOGGER.info("Total Folders Fetched: %s", len(bw_folders))
     # bw_exec.clear_cache()
-    write_to_keepass()
+    write_to_keepass(bw_organizations)
 
 
 if __name__ == "__main__":

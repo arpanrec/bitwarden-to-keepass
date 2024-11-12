@@ -23,6 +23,7 @@ from . import BitwardenException
 LOGGER = logging.getLogger(__name__)
 
 
+@cachier()
 def download_file(item_id: str, attachment_id: str) -> str:
     """
     Downloads a file from bitwarden.
