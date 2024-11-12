@@ -12,7 +12,7 @@ from pykeepass.entry import Entry  # type: ignore
 from pykeepass.group import Group  # type: ignore
 
 from . import BitwardenException
-from .models import BwItem, BwItemLogin, BwOrganization
+from .models import BwItem, BwOrganization
 
 LOGGER = logging.getLogger(__name__)
 
@@ -54,26 +54,18 @@ def add_entry(py_kee_pass: PyKeePass, group: Group, bw_item: BwItem) -> Entry:
     """
     Add an entry to Keepass
     """
-    if not bw_item.login:
-        LOGGER.warning("No Login for %s, skipping", bw_item.name)
-        bw_item.login = BwItemLogin(username="No Username", password="No Password")
-    else:
-        if not bw_item.login.username:
-            LOGGER.warning("No Username for %s, setting it to No Username", bw_item.name)
-            bw_item.login.username = "No Username"
-        if not bw_item.login.password:
-            LOGGER.warning("No Password for %s, setting it to No Password", bw_item.name)
-            bw_item.login.password = "No Password"
-
     entry: Entry = py_kee_pass.add_entry(
         destination_group=group,
         title=bw_item.name,
-        username=bw_item.login.username,
-        password=bw_item.login.password,
+        username="" if (not bw_item.login) or (not bw_item.login.username) else bw_item.login.username,
+        password="" if (not bw_item.login) or (not bw_item.login.password) else bw_item.login.password,
     )
     add_fields(entry, bw_item)
     add_attachment(py_kee_pass, entry, bw_item)
     add_otp(entry, bw_item)
+
+    if bw_item.notes:
+        entry.notes = bw_item.notes
 
     return entry
 
@@ -104,9 +96,13 @@ def add_fields(entry: Entry, item: BwItem) -> None:
     """
     all_field_names = []
     for field in item.fields:
-        if (field.name in all_field_names) or (field.name in ["otp"]):
-            LOGGER.warning("Field with name %s Adding -1", field.name)
+        if field.name in all_field_names:
+            LOGGER.warning("Duplicate Field with name %s, Adding -1", field.name)
             field.name = f"{field.name}-1"
+        if field.name == "otp":
+            LOGGER.warning("Field with name otp is reserved")
+            LOGGER.warning("Changing Field Name to otp-1")
+            field.name = "otp-1"
         all_field_names.append(field.name)
         entry.set_custom_property(field.name, field.value, protect=False)
 

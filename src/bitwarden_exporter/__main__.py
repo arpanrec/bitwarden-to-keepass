@@ -22,16 +22,12 @@ import tempfile
 import time
 from typing import Any, Dict, List
 
-from . import BitwardenException
+from . import BitwardenException, is_debug
 from .cli import bw_exec, download_file
 from .keepass import write_to_keepass
 from .models import BwCollection, BwFolder, BwItem, BwOrganization
-from . import is_debug
 
 LOGGER = logging.getLogger(__name__)
-
-
-
 
 
 def main() -> None:
