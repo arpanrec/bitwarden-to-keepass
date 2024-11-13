@@ -34,6 +34,7 @@ def main() -> None:  # pylint: disable=too-many-locals
     bw_current_status = json.loads(bw_exec(["status"]))
     if bw_current_status["status"] != "unlocked":
         raise BitwardenException("Vault is not unlocked")
+    LOGGER.debug("Vault status: %s", json.dumps(bw_current_status))
 
     bw_organizations_dict = json.loads((bw_exec(["list", "organizations"])))
     bw_organizations: Dict[str, BwOrganization] = {
