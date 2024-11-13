@@ -90,9 +90,9 @@ class BwField(BaseModel):
     """
 
     name: str
-    value: str
+    value: Optional[str] = None
     type: int
-    linkedId: Optional[str] = None
+    linkedId: Optional[int] = None
 
 
 class BwItem(BaseModel):
