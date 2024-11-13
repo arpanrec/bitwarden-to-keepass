@@ -23,9 +23,14 @@ description = "Export Bitwarden vault"
 authors = ["arpan <arpan.rec@gmail.com>"]
 license = "MIT"
 readme = "README.md"
+repository = "https://github.com/arpanrec/bitwarden-exporter.git"
+documentation = "https://github.com/arpanrec/bitwarden-exporter/blob/main/README.md"
+homepage = "https://github.com/arpanrec/bitwarden-exporter"
 package-mode = true
 packages = [{ include = "bitwarden_exporter", from = "src" }]
 scripts = { "bitwarden-exporter" = "bitwarden_exporter.__main__:main" }
+keywords = ["bitwarden", "export", "keepass", "backup"]
+include = ["CHANGELOG.md"]
 
 [tool.poetry.dependencies]
 python = "^3.10"

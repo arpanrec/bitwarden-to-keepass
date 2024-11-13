@@ -57,6 +57,7 @@ jobs:
                   git config --global user.email "${{ steps.import-gpg.outputs.email }}"
                   git config --global user.name "${{ steps.import-gpg.outputs.name }}"
                   git config --global user.name "${{ steps.import-gpg.outputs.name }}"
+                  poetry config pypi-token.pypi "${{ secrets.PYPI_PROD_API_TOKEN }}"
                   npx semantic-release@24.2.0 --extends ./.github/files/release.config.cjs
               env:
                   GITHUB_TOKEN: "${{ secrets.GH_BOT_API_TOKEN }}"

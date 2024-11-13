@@ -27,13 +27,15 @@ module.exports = {
             '@semantic-release/exec',
             {
                 prepareCmd: [
+                    'poetry build --no-interaction',
+                    'poetry publish --dry-run --no-interaction',
                     'rm -f CHANGELOG.md',
                     'poetry version ${nextRelease.version}',
                     'poetry export --without-hashes --format=requirements.txt --without dev -o requirements.txt',
                     'poetry export --without-hashes --format=requirements.txt --with dev -o requirements-dev.txt',
                 ].join(' && '),
-                // successCmd:
-                //     'ansible-galaxy collection publish arpanrec-nebula-${nextRelease.version}.tar.gz --api-key ${process.env.GALAXY_API_KEY}',
+                successCmd:
+                    'poetry publish --repository pypi',
             },
         ],
         [
