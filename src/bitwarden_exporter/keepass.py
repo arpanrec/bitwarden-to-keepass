@@ -14,7 +14,7 @@ from pykeepass.entry import Entry  # type: ignore
 from pykeepass.group import Group  # type: ignore
 
 from . import BitwardenException
-from .bw_models import BwFolder, BwItem, BwOrganization
+from .bw_models import BwField, BwFolder, BwItem, BwOrganization
 
 LOGGER = logging.getLogger(__name__)
 
@@ -107,6 +107,15 @@ class KeePassStorage:
             password="" if (not bw_item.login) or (not bw_item.login.password) else bw_item.login.password,
         )
         LOGGER.info("Adding Entry %s", bw_item.name)
+
+        if bw_item.login and bw_item.login.fido2Credentials and len(bw_item.login.fido2Credentials) > 0:
+            LOGGER.warning("Fido2Credentials are not supported in Keepass for %s", bw_item.name)
+            fido2credentials_dict: List[Dict[str, Any]] = [
+                fido2Credentials.model_dump() for fido2Credentials in bw_item.login.fido2Credentials
+            ]
+            fido2field = BwField(name="Fido2Credentials", value=json.dumps(fido2credentials_dict, indent=4), type=1)
+            bw_item.fields.append(fido2field)
+
         self.__add_fields(entry, bw_item)
         self.__add_attachment(entry, bw_item)
         self.__add_otp(entry, bw_item)
@@ -136,35 +145,71 @@ class KeePassStorage:
         entry.otp = bw_item.login.totp
         return None
 
-    @staticmethod
-    def __add_fields(entry: Entry, item: BwItem) -> None:
+    def __fix_duplicate_field_names(self, entry: Entry, item: BwItem) -> None:
         """
-        Add fields to Keepass
+        Fix duplicate field names
         """
-        LOGGER.info("%s:: Adding Custom Fields to custom_properties", item.name)
         all_field_names = [] + list(entry.custom_properties.keys())
         for field in item.fields:
             if field.name in all_field_names:
                 LOGGER.warning("%s:: Field with name %s already exists, Adding -1", item.name, field.name)
                 field.name = f"{field.name}-1"
+                self.__fix_duplicate_field_names(entry, item)
             if field.name == "otp":
                 LOGGER.warning("%s:: Field with name otp is reserved in keepass, Changing to otp-1", item.name)
                 field.name = "otp-1"
+                self.__fix_duplicate_field_names(entry, item)
             all_field_names.append(field.name)
-            entry.set_custom_property(field.name, field.value, protect=False)
+
+    def __add_fields(self, entry: Entry, item: BwItem) -> None:  # pylint: disable=too-many-branches
+        """
+        Add fields to Keepass
+        """
+        LOGGER.info("%s:: Adding Custom Fields to custom_properties", item.name)
+        self.__fix_duplicate_field_names(entry, item)
+        for field in item.fields:
+            if field.type == 0:
+                if field.value:
+                    entry.set_custom_property(field.name, field.value, protect=False)
+                else:
+                    entry.set_custom_property(field.name, "", protect=False)
+            elif field.type == 1:
+                if field.value:
+                    entry.set_custom_property(field.name, field.value, protect=True)
+                else:
+                    entry.set_custom_property(field.name, "", protect=True)
+            elif field.type == 2:
+                entry.set_custom_property(field.name, field.value, protect=False)
+            elif field.type == 3 and field.linkedId:
+                if field.linkedId == 100:
+                    entry.set_custom_property(field.name, "Linked to Username", protect=False)
+                elif field.linkedId == 101:
+                    entry.set_custom_property(field.name, "Linked to Password", protect=False)
+                else:
+                    raise BitwardenException(f"{item.name}:: {field.name}:: Unknown linkedId {field.linkedId}")
+            else:
+                raise BitwardenException(f"{item.name}:: {field.name}:: Unknown Field Type {field.type}")
+
+    def __fix_duplicate_attachment_names(self, entry: Entry, item: BwItem) -> None:
+        """
+        Fix duplicate attachment names
+        """
+        all_attachment_names = [] + [attachment.fileName for attachment in entry.attachments]
+        for attachment in item.attachments:
+            if attachment.fileName in all_attachment_names:
+                LOGGER.warning("%s:: Attachment with name %s already exists, Adding -1", item.name, attachment.fileName)
+                attachment.fileName = f"{attachment.fileName}-1"
+                self.__fix_duplicate_attachment_names(entry, item)
+            all_attachment_names.append(attachment.fileName)
 
     def __add_attachment(self, entry: Entry, item: BwItem) -> None:
         """
         Add an attachment to Keepass
         """
         LOGGER.info("%s:: Adding Attachments", item.name)
-        all_names = [] + [attachment.fileName for attachment in entry.attachments]
+        self.__fix_duplicate_attachment_names(entry, item)
         for attachment in item.attachments:
             LOGGER.info("%s:: Adding Attachment to keepass %s", item.name, attachment.fileName)
-            if attachment.fileName in all_names:
-                LOGGER.warning("%s:: Attachment with name %s already exists, Adding -1", item.name, attachment.fileName)
-                attachment.fileName = f"{attachment.fileName}-1"
-            all_names.append(attachment.fileName)
             with open(attachment.local_file_path, "rb") as file_attach:
                 binary_id = self.__py_kee_pass.add_binary(data=file_attach.read(), protected=False, compressed=False)
                 entry.add_attachment(binary_id, attachment.fileName)
