@@ -34,7 +34,7 @@ module.exports = {
                     'poetry export --without-hashes --format=requirements.txt --without dev -o requirements.txt',
                     'poetry export --without-hashes --format=requirements.txt --with dev -o requirements-dev.txt',
                 ].join(' && '),
-                successCmd: 'poetry publish --build --repository pypi',
+                successCmd: 'poetry publish --build --repository pypi --no-interaction',
             },
         ],
         [
