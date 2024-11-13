@@ -239,7 +239,7 @@ class KeePassStorage:
             destination_group=self.__py_kee_pass.root_group,
             title="Bitwarden Export",
             username="",
-            password="",
+            password="",  # nosec CWE-259
         )
         for key, value in raw_items.items():
             binary_id = self.__py_kee_pass.add_binary(
