@@ -165,6 +165,5 @@ cython_debug/
 .env*
 dump*
 bitwarden_dump*
-bitwarden_export*
 temp.py
 __pycache__
