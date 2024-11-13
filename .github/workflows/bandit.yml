@@ -5,7 +5,7 @@ name: "Bandit: A security linter from PyCQA"
     push:
         paths:
             - "**.py"
-            - ".github/workflows/isort.yml"
+            - ".github/workflows/bandit.yml"
             - "poetry.lock"
             - "pyproject.toml"
     workflow_dispatch:
