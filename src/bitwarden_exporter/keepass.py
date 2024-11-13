@@ -6,14 +6,14 @@ import json
 import logging
 import urllib.parse
 from types import TracebackType
-from typing import Dict, List, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Type, Union
 
 from pykeepass import PyKeePass, create_database  # type: ignore
 from pykeepass.entry import Entry  # type: ignore
 from pykeepass.group import Group  # type: ignore
 
 from . import BitwardenException
-from .bw_models import BwItem, BwOrganization, BwFolder
+from .bw_models import BwFolder, BwItem, BwOrganization
 
 LOGGER = logging.getLogger(__name__)
 
@@ -225,3 +225,20 @@ class KeePassStorage:
             except Exception as e:
                 LOGGER.error("Error adding entry %s", e)
                 raise BitwardenException("Error adding entry") from e
+
+    def process_bw_exports(self, raw_items: Dict[str, Any]) -> None:
+        """
+        Function to write to Keepass
+        """
+        entry: Entry = self.__py_kee_pass.add_entry(
+            destination_group=self.__py_kee_pass.root_group,
+            title="Bitwarden Export",
+            username="",
+            password="",
+        )
+        # binary_id = self.__py_kee_pass.add_binary(data=file_attach.read(), protected=False, compressed=False)
+        for key, value in raw_items.items():
+            binary_id = self.__py_kee_pass.add_binary(
+                data=json.dumps(value, indent=4).encode(), protected=False, compressed=False
+            )
+            entry.add_attachment(binary_id, key)

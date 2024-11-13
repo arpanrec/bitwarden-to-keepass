@@ -65,25 +65,33 @@ def main() -> None:  # pylint: disable=too-many-locals
     Main function that handles the export process, including fetching organizations,
     """
 
+    raw_items: Dict[str, Any] = {}
     bw_current_status = json.loads(bw_exec(["status"]))
+    raw_items["status.json"] = bw_current_status
+
     if bw_current_status["status"] != "unlocked":
         raise BitwardenException("Vault is not unlocked")
     LOGGER.debug("Vault status: %s", json.dumps(bw_current_status))
 
-    bw_folders: Dict[str, BwFolder] = {
-        folder["id"]: BwFolder(**folder) for folder in json.loads((bw_exec(["list", "folders"])))
-    }
+    bw_folders_dict = json.loads((bw_exec(["list", "folders"])))
+    bw_folders: Dict[str, BwFolder] = {folder["id"]: BwFolder(**folder) for folder in bw_folders_dict}
     LOGGER.info("Total Folders Fetched: %s", len(bw_folders))
 
     no_folder_items: List[BwItem] = []
 
     bw_organizations_dict = json.loads((bw_exec(["list", "organizations"])))
+    raw_items["organizations.json"] = bw_organizations_dict
     bw_organizations: Dict[str, BwOrganization] = {
         organization["id"]: BwOrganization(**organization) for organization in bw_organizations_dict
     }
     LOGGER.info("Total Organizations Fetched: %s", len(bw_organizations))
 
+    for bw_organization in bw_organizations.keys():
+        org_export = json.loads(bw_exec(["export", "--organizationid", bw_organization, "--format", "json"]))
+        raw_items[f"organization_export_{bw_organization}.json"] = org_export
+
     bw_collections_dict = json.loads((bw_exec(["list", "collections"])))
+    raw_items["collections.json"] = bw_collections_dict
     LOGGER.info("Total Collections Fetched: %s", len(bw_collections_dict))
 
     for bw_collection_dict in bw_collections_dict:
@@ -92,6 +100,7 @@ def main() -> None:  # pylint: disable=too-many-locals
         organization.collections[bw_collection.id] = bw_collection
 
     bw_items_dict: List[Dict[str, Any]] = json.loads((bw_exec(["list", "items"])))
+    raw_items["items.json"] = bw_items_dict
 
     LOGGER.info("Total Items Fetched: %s", len(bw_items_dict))
     for bw_item_dict in bw_items_dict:
@@ -114,6 +123,8 @@ def main() -> None:  # pylint: disable=too-many-locals
             add_items_to_folder(bw_folders, bw_item)
         else:
             no_folder_items.append(bw_item)
+
+    raw_items["export.json"] = json.loads((bw_exec(["export", "--format", "json"])))
 
     LOGGER.info("Total Items Fetched: %s", len(bw_items_dict))
 

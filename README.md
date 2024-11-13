@@ -14,7 +14,7 @@
 |_____/_/\_\ .__/ \___/|_|   \__\___|_|   
 ```
 
-Python Wrapper for bitwarden cli dump with **attachments**.
+Python Wrapper for [Password Manager CLI](https://bitwarden.com/help/cli/) dump with **attachments**.
 
 This allows you to take a whole backup of your bitwarden vault, including organizations where you don't have access for admin/owner.
 
@@ -55,7 +55,6 @@ poetry run bitwarden-exporter --help
 Make a cloud ready option for bitwarden zero touch backup
 
 - Upload to cloud storage.
-- Create Encrypted zip instate of encrypt each individual file.
 
 ## Credits
 
