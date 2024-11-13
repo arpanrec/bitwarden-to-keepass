@@ -31,6 +31,30 @@ packages = [{ include = "bitwarden_exporter", from = "src" }]
 scripts = { "bitwarden-exporter" = "bitwarden_exporter.__main__:main" }
 keywords = ["bitwarden", "export", "keepass", "backup"]
 include = ["CHANGELOG.md"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: All",
+    "Operating System :: Unix",
+    "Operating System :: POSIX",
+    "Operating System :: Microsoft :: Windows",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: Utilities",
+    "Topic :: Bitwarden :: Backup",
+    "Topic :: Keepass :: Import",
+    "Topic :: Password Manager",
+    "Topic :: Security",
+    "Topic :: Cryptography",
+    "Topic :: Encryption",
+    "Topic :: Export",
+    "Topic :: Import",
+    "Topic :: Backup",
+]
 
 [tool.poetry.dependencies]
 python = "^3.10"
