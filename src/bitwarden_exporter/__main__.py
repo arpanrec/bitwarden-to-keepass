@@ -11,7 +11,6 @@ Functions:
 
 Raises:
     BitwardenException: If there is an error executing a Bitwarden CLI command or if the vault is not unlocked.
-
 """
 
 import json
@@ -92,7 +91,7 @@ def main() -> None:  # pylint: disable=too-many-locals
     LOGGER.info("Total Folders Fetched: %s", len(bw_folders))
 
     with KeePassStorage(BITWARDEN_SETTINGS.export_location, BITWARDEN_SETTINGS.export_password) as storage:
-        storage.process_organization(bw_organizations)
+        storage.process_organizations(bw_organizations)
 
     # if not is_debug():
     #     LOGGER.info("Removing Temporary Directory %s", args.tmp_dir)

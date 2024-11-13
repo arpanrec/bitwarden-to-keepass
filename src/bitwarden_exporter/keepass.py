@@ -157,7 +157,7 @@ class KeePassStorage:
                 binary_id = self.__py_kee_pass.add_binary(data=file_attach.read(), protected=False, compressed=False)
                 entry.add_attachment(binary_id, attachment.fileName)
 
-    def process_organization(self, bw_organizations: Dict[str, BwOrganization]) -> None:
+    def process_organizations(self, bw_organizations: Dict[str, BwOrganization]) -> None:
         """
         Function to write to Keepass
         """
