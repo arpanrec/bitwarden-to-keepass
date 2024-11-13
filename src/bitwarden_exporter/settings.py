@@ -68,7 +68,7 @@ def get_bitwarden_settings_based_on_args() -> BitwardenExportSettings:
         "--allow-duplicates",
         help="Allow Duplicates entries in Export, In bitwarden each item can be in multiple collections,"
         " Default: False",
-        action="store_true",
+        action=argparse.BooleanOptionalAction,
         default=False,
     )
 
@@ -84,7 +84,7 @@ def get_bitwarden_settings_based_on_args() -> BitwardenExportSettings:
         "--verbose",
         help="Enable Verbose Logging, This will print debug logs, THAT MAY CONTAIN SENSITIVE INFORMATION,"
         " Default: False",
-        action="store_true",
+        action=argparse.BooleanOptionalAction,
         default=False,
     )
 

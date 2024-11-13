@@ -72,18 +72,23 @@ def main() -> None:  # pylint: disable=too-many-locals
 
         if not bw_item.collectionIds or len(bw_item.collectionIds) < 1:
             raise BitwardenException(f"Item {bw_item.id} does not have any collection, but belongs to an organization")
-
-        if len(bw_item.collectionIds) > 1 and BITWARDEN_SETTINGS.allow_duplicates:
+        elif len(bw_item.collectionIds) == 1:
+            organization.collections[bw_item.collectionIds[0]].items[bw_item.id] = bw_item
+        elif (len(bw_item.collectionIds) > 1) and BITWARDEN_SETTINGS.allow_duplicates:
+            for collection_id in bw_item.collectionIds:
+                collection = organization.collections[collection_id]
+                collection.items[bw_item.id] = bw_item
+        elif (len(bw_item.collectionIds) > 1) and (not BITWARDEN_SETTINGS.allow_duplicates):
             LOGGER.warning(
-                "Item %s belongs to multiple collections Just using the first one %s",
-                bw_item.id,
+                "Item %s belongs to multiple collections, Just using the first one %s",
+                bw_item.name,
                 organization.collections[bw_item.collectionIds[0]].name,
             )
             organization.collections[bw_item.collectionIds[0]].items[bw_item.id] = bw_item
         else:
-            for collection_id in bw_item.collectionIds:
-                collection = organization.collections[collection_id]
-                collection.items[bw_item.id] = bw_item
+            raise BitwardenException(
+                f"Item {bw_item.id} belongs to multiple collections, but duplicates are not allowed"
+            )
 
     LOGGER.info("Total Items Fetched: %s", len(bw_items_dict))
 
