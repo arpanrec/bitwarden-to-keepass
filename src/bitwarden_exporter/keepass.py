@@ -14,7 +14,7 @@ from pykeepass.entry import Entry  # type: ignore
 from pykeepass.group import Group  # type: ignore
 
 from . import BitwardenException
-from .bw_models import BwFolder, BwItem, BwOrganization
+from .bw_models import BwField, BwFolder, BwItem, BwOrganization
 
 LOGGER = logging.getLogger(__name__)
 
@@ -107,6 +107,15 @@ class KeePassStorage:
             password="" if (not bw_item.login) or (not bw_item.login.password) else bw_item.login.password,
         )
         LOGGER.info("Adding Entry %s", bw_item.name)
+
+        if bw_item.login and bw_item.login.fido2Credentials and len(bw_item.login.fido2Credentials) > 0:
+            LOGGER.warning("Fido2Credentials are not supported in Keepass for %s", bw_item.name)
+            fido2credentials_dict: List[Dict[str, Any]] = [
+                fido2Credentials.model_dump() for fido2Credentials in bw_item.login.fido2Credentials
+            ]
+            fido2field = BwField(name="Fido2Credentials", value=json.dumps(fido2credentials_dict, indent=4), type=1)
+            bw_item.fields.append(fido2field)
+
         self.__add_fields(entry, bw_item)
         self.__add_attachment(entry, bw_item)
         self.__add_otp(entry, bw_item)
@@ -152,7 +161,7 @@ class KeePassStorage:
                 self.__fix_duplicate_field_names(entry, item)
             all_field_names.append(field.name)
 
-    def __add_fields(self, entry: Entry, item: BwItem) -> None:
+    def __add_fields(self, entry: Entry, item: BwItem) -> None:  # pylint: disable=too-many-branches
         """
         Add fields to Keepass
         """
