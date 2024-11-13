@@ -31,7 +31,7 @@ class KeePassStorage:
         self.__kdbx_file = os.path.abspath(kdbx_file)
         self.__kdbx_password = kdbx_password
         if os.path.exists(self.__kdbx_file):
-            raise BitwardenException("KeePass Database already exists at %s", self.__kdbx_file)
+            raise BitwardenException(f"KeePass Database already exists at f{self.__kdbx_file}")
 
     def __enter__(self) -> "KeePassStorage":
         LOGGER.info("Creating Keepass Database: %s", self.__kdbx_file)
