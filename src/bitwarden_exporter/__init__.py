@@ -8,7 +8,7 @@ Classes:
 import logging
 import sys
 
-from .settings import get_bitwarden_settings_based_on_args, BitwardenExportSettings
+from .settings import BitwardenExportSettings, get_bitwarden_settings_based_on_args
 
 BITWARDEN_SETTINGS: BitwardenExportSettings = get_bitwarden_settings_based_on_args()
 

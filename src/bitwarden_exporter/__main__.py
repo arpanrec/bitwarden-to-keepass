@@ -19,10 +19,10 @@ import logging
 import os.path
 from typing import Any, Dict, List
 
-from . import BitwardenException, BITWARDEN_SETTINGS
+from . import BITWARDEN_SETTINGS, BitwardenException
+from .bw_models import BwCollection, BwFolder, BwItem, BwOrganization
 from .cli import bw_exec, download_file
 from .keepass import KeePassStorage
-from .bw_models import BwCollection, BwFolder, BwItem, BwOrganization
 
 LOGGER = logging.getLogger(__name__)
 
