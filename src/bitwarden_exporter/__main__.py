@@ -86,8 +86,9 @@ def main() -> None:  # pylint: disable=too-many-locals
     }
     LOGGER.info("Total Organizations Fetched: %s", len(bw_organizations))
 
-    for bw_organization in bw_organizations.keys():
-        org_export = json.loads(bw_exec(["export", "--organizationid", bw_organization, "--format", "json"]))
+    for bw_organization in bw_organizations.values():
+        LOGGER.info("Exporting Organization %s", bw_organization.name)
+        org_export = json.loads(bw_exec(["export", "--organizationid", bw_organization.id, "--format", "json"]))
         raw_items[f"organization_export_{bw_organization}.json"] = org_export
 
     bw_collections_dict = json.loads((bw_exec(["list", "collections"])))
@@ -124,6 +125,7 @@ def main() -> None:  # pylint: disable=too-many-locals
         else:
             no_folder_items.append(bw_item)
 
+    LOGGER.info("Exporting User Vault Items")
     raw_items["export.json"] = json.loads((bw_exec(["export", "--format", "json"])))
 
     LOGGER.info("Total Items Fetched: %s", len(bw_items_dict))
@@ -132,6 +134,7 @@ def main() -> None:  # pylint: disable=too-many-locals
         storage.process_organizations(bw_organizations)
         storage.process_folders(bw_folders)
         storage.process_no_folder_items(no_folder_items)
+        storage.process_bw_exports(raw_items)
 
     # if not is_debug():
     #     LOGGER.info("Removing Temporary Directory %s", args.tmp_dir)
