@@ -6,29 +6,14 @@ Classes:
 """
 
 import logging
-import os
 import sys
 
+from .settings import get_bitwarden_settings_based_on_args, BitwardenExportSettings
 
-def is_debug() -> bool:
-    """
-    Function to check if debug is enabled.
-    """
-
-    enabled: bool = False
-    if str(os.environ.get("DEBUG", "False")).lower() in ["true", "1", "yes"]:
-        enabled = True
-    return enabled
-
-
-print("Remove existing log handlers")
-root = logging.getLogger()
-if root.handlers:
-    for handler in root.handlers:
-        root.removeHandler(handler)
+BITWARDEN_SETTINGS: BitwardenExportSettings = get_bitwarden_settings_based_on_args()
 
 logging.basicConfig(
-    level=logging.DEBUG if is_debug() else logging.INFO,
+    level=logging.DEBUG if BITWARDEN_SETTINGS.verbose else logging.INFO,
     format="%(asctime)s - %(levelname)s - %(name)s.%(funcName)s():%(lineno)d:- %(message)s",
     handlers=[logging.StreamHandler(sys.stdout)],
 )

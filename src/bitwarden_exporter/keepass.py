@@ -12,7 +12,7 @@ from pykeepass.entry import Entry  # type: ignore
 from pykeepass.group import Group  # type: ignore
 
 from . import BitwardenException
-from .models import BwItem, BwOrganization
+from .bw_models import BwItem, BwOrganization
 
 LOGGER = logging.getLogger(__name__)
 

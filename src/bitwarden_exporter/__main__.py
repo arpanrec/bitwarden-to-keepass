@@ -14,17 +14,15 @@ Raises:
 
 """
 
-import argparse
 import json
 import logging
 import os.path
-import time
 from typing import Any, Dict, List
 
-from . import BitwardenException
+from . import BitwardenException, BITWARDEN_SETTINGS
 from .cli import bw_exec, download_file
 from .keepass import KeePassStorage
-from .models import BwCollection, BwFolder, BwItem, BwOrganization
+from .bw_models import BwCollection, BwFolder, BwItem, BwOrganization
 
 LOGGER = logging.getLogger(__name__)
 
@@ -34,24 +32,6 @@ def main() -> None:  # pylint: disable=too-many-locals
     Main function that handles the export process, including fetching organizations,
     """
 
-    parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "-l", "--export-location", help="Bitwarden Export Location", default=f"bitwarden_dump_{int(time.time())}.kdbx"
-    )
-    parser.add_argument("-p", "--export-password", help="Bitwarden Export Password", required=True)
-    parser.add_argument(
-        "--allow-duplicates",
-        help="Allow Duplicates entries in Export, In bitwarden each item can be in multiple collections",
-        action="store_true",
-        default=False,
-    )
-    parser.add_argument(
-        "--tmp-dir",
-        help="Temporary Directory to store attachments",
-        default=os.path.abspath("bitwarden_dump_attachments"),
-    )
-
-    args, _ = parser.parse_known_args()
     bw_current_status = json.loads(bw_exec(["status"]))
     if bw_current_status["status"] != "unlocked":
         raise BitwardenException("Vault is not unlocked")
@@ -78,7 +58,7 @@ def main() -> None:  # pylint: disable=too-many-locals
         LOGGER.debug("Processing Item %s", bw_item.name)
         if bw_item.attachments and len(bw_item.attachments) > 0:
             for attachment in bw_item.attachments:
-                attachment.local_file_path = os.path.join(args.tmp_dir, bw_item.id, attachment.id)
+                attachment.local_file_path = os.path.join(BITWARDEN_SETTINGS.tmp_dir, bw_item.id, attachment.id)
                 LOGGER.info(
                     "%s:: Downloading Attachment %s to %s",
                     bw_item.name,
@@ -94,7 +74,7 @@ def main() -> None:  # pylint: disable=too-many-locals
         if not bw_item.collectionIds or len(bw_item.collectionIds) < 1:
             raise BitwardenException(f"Item {bw_item.id} does not have any collection, but belongs to an organization")
 
-        if len(bw_item.collectionIds) > 1 and args.allow_duplicates:
+        if len(bw_item.collectionIds) > 1 and BITWARDEN_SETTINGS.allow_duplicates:
             LOGGER.warning(
                 "Item %s belongs to multiple collections Just using the first one %s",
                 bw_item.id,
@@ -111,7 +91,7 @@ def main() -> None:  # pylint: disable=too-many-locals
     bw_folders: List[BwFolder] = [BwFolder(**folder) for folder in json.loads((bw_exec(["list", "folders"])))]
     LOGGER.info("Total Folders Fetched: %s", len(bw_folders))
 
-    with KeePassStorage(args.export_location, args.export_password) as storage:
+    with KeePassStorage(BITWARDEN_SETTINGS.export_location, BITWARDEN_SETTINGS.export_password) as storage:
         storage.process_organization(bw_organizations)
 
     # if not is_debug():

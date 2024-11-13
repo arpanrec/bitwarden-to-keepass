@@ -1,23 +1,21 @@
-# Bitwarden export migrate
+# Bitwarden Exporter
 
 Python Wrapper for bitwarden cli dump with **attachments**.
 
-This allows you to take a whole backup of your bitwarden vault, including organizations where you don't have access for admin/owner. And fully compatible with bitwarden import `bw import <format> <path>`.
+This allows you to take a whole backup of your bitwarden vault, including organizations where you don't have access for admin/owner.
 
 ## Prerequisites
 
 - [Bitwarden CLI](https://bitwarden.com/help/article/cli/#download-and-install)
-- [Python3](https://www.python.org/downloads/)
-- [PIP](https://pip.pypa.io/en/stable/)
-- Gnupg (Optional only for encrypted exports) Most of the Mac and Linux System will have it preinstalled. [For Windows](https://www.gpg4win.org)
+- [python-poetry](https://python-poetry.org/docs/#installation)
 
 ## Instructions
 
 ```bash
-$ python3 -m pip install -r requirements.txt 
-Requirement already satisfied: python-gnupg in ./venv/lib/python3.9/site-packages (from -r requirements.txt (line 1)) (0.4.7)
-Requirement already satisfied: configargparse in ./venv/lib/python3.9/site-packages (from -r requirements.txt (line 2)) (1.5.3)
-$ python3 bw_dump.py
+git clone https://github.com/arpanrec/bitwarden-exporter.git
+cd bitwarden-exporter
+poetry install
+poetry run bitwarden-exporter --help
 ```
 
 - `-d` `--directory`  
@@ -32,11 +30,8 @@ $ python3 bw_dump.py
 
 Make a cloud ready option for bitwarden zero touch backup
 
-- Upload to GDrive / PCloud / Onedrive.
+- Upload to cloud storage.
 - Create Encrypted zip instate of encrypt each individual file.
-- Support for bitwarden official export method `bw export <masterpassword> --organizationid` on demand.
-- Jenkins Integration for credential delivery
-- Export to KDBX4 based file
 
 ## Credits
 
