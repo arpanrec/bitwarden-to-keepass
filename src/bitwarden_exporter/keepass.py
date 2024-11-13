@@ -115,7 +115,7 @@ class KeePassStorage:
             ]
             fido2field = BwField(name="Fido2Credentials", value=json.dumps(fido2credentials_dict, indent=4), type=1)
             bw_item.fields.append(fido2field)
-
+        bw_item.fields += self.__add_uri(entry, bw_item)
         self.__add_fields(entry, bw_item)
         self.__add_attachment(entry, bw_item)
         self.__add_otp(entry, bw_item)
@@ -124,6 +124,29 @@ class KeePassStorage:
             entry.notes = bw_item.notes
 
         return entry
+
+    @staticmethod
+    def __add_uri(entry: Entry, bw_item: BwItem) -> List[BwField]:
+        """
+        Add URI to Keepass
+        """
+        if (not bw_item.login) or (not bw_item.login.uris) or len(bw_item.login.uris) == 0:
+            return []
+
+        LOGGER.info("Adding URI for %s", bw_item.name)
+        entry.url = bw_item.login.uris[0].uri
+        if len(bw_item.login.uris) > 1:
+            LOGGER.warning("Multiple URIs are not supported in Keepass for %s", bw_item.name)
+            LOGGER.warning("Only the first URI will be added")
+            LOGGER.warning("Rest of the URIs will be added as fields")
+        uri_list: List[BwField] = []
+        for uri in bw_item.login.uris:
+            field_name = f"URI"
+            if uri.match:
+                field_name = f"URI-type-{uri.match}"
+            uri_item = BwField(name=field_name, value=uri.uri, type=0)
+            uri_list.append(uri_item)
+        return uri_list
 
     @staticmethod
     def __add_otp(entry: Entry, bw_item: BwItem) -> None:

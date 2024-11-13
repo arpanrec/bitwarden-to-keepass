@@ -86,11 +86,6 @@ def main() -> None:  # pylint: disable=too-many-locals
     }
     LOGGER.info("Total Organizations Fetched: %s", len(bw_organizations))
 
-    for bw_organization in bw_organizations.values():
-        LOGGER.info("Exporting Organization:: %s", bw_organization.name)
-        org_export = json.loads(bw_exec(["export", "--organizationid", bw_organization.id, "--format", "json"]))
-        raw_items[f"organization_export_{bw_organization.id}.json"] = org_export
-
     bw_collections_dict = json.loads((bw_exec(["list", "collections"])))
     raw_items["collections.json"] = bw_collections_dict
     LOGGER.info("Total Collections Fetched: %s", len(bw_collections_dict))
@@ -124,9 +119,6 @@ def main() -> None:  # pylint: disable=too-many-locals
             add_items_to_folder(bw_folders, bw_item)
         else:
             no_folder_items.append(bw_item)
-
-    LOGGER.info("Exporting User Vault Items")
-    raw_items["my_vault_export.json"] = json.loads((bw_exec(["export", "--format", "json"])))
 
     LOGGER.info("Total Items Fetched: %s", len(bw_items_dict))
 
