@@ -7,7 +7,7 @@ no_implicit_optional = true
 
 [tool.pylint."FORMAT"]
 max-line-length = 120
-indent-string = '    '
+indent-string = "    "
 
 [tool.isort]
 profile = "black"
@@ -33,7 +33,7 @@ keywords = ["bitwarden", "export", "keepass", "backup"]
 include = ["CHANGELOG.md"]
 classifiers = [
     "Development Status :: 5 - Production/Stable",
-    "Intended Audience :: All",
+    "Intended Audience :: End Users/Desktop",
     "Operating System :: Unix",
     "Operating System :: POSIX",
     "Operating System :: Microsoft :: Windows",
@@ -45,15 +45,11 @@ classifiers = [
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: Implementation :: PyPy",
     "Topic :: Utilities",
-    "Topic :: Bitwarden :: Backup",
-    "Topic :: Keepass :: Import",
-    "Topic :: Password Manager",
+    "Topic :: System :: Archiving",
+    "Topic :: System :: Archiving :: Backup",
     "Topic :: Security",
-    "Topic :: Cryptography",
-    "Topic :: Encryption",
-    "Topic :: Export",
-    "Topic :: Import",
-    "Topic :: Backup",
+    "Topic :: Security :: Cryptography",
+    "Topic :: System :: Recovery Tools",
 ]
 
 [tool.poetry.dependencies]
