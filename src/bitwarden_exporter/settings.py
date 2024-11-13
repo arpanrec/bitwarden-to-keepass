@@ -1,3 +1,20 @@
+"""
+This module provides functionality to manage settings for the Bitwarden Exporter.
+
+Classes:
+    BitwardenExportSettings: A Pydantic model that defines the settings for the Bitwarden Exporter.
+
+Functions:
+    get_bitwarden_settings_based_on_args: Parses command-line arguments to populate and return a BitwardenExportSettings instance.
+
+The settings include:
+    - export_location: The location where the Bitwarden export will be saved.
+    - export_password: The password used for the Bitwarden export.
+    - allow_duplicates: A flag to allow duplicate entries in the export.
+    - tmp_dir: The temporary directory to store sensitive files during the export process.
+    - verbose: A flag to enable verbose logging, which may include sensitive information.
+"""
+
 import argparse
 import os
 import time
@@ -28,7 +45,7 @@ def get_bitwarden_settings_based_on_args() -> BitwardenExportSettings:
         "-l",
         "--export-location",
         help="Bitwarden Export Location, Default: bitwarden_dump_<timestamp>.kdbx, This is a dynamic value,"
-             " Just in case if it exists, it will be overwritten",
+        " Just in case if it exists, it will be overwritten",
         default=f"bitwarden_dump_{int(time.time())}.kdbx",
     )
 
@@ -49,7 +66,7 @@ def get_bitwarden_settings_based_on_args() -> BitwardenExportSettings:
     parser.add_argument(
         "--allow-duplicates",
         help="Allow Duplicates entries in Export, In bitwarden each item can be in multiple collections,"
-             " Default: False",
+        " Default: False",
         action="store_true",
         default=False,
     )
@@ -57,15 +74,15 @@ def get_bitwarden_settings_based_on_args() -> BitwardenExportSettings:
     parser.add_argument(
         "--tmp-dir",
         help="Temporary Directory to store temporary sensitive files,"
-             " Make sure to delete it after the export,"
-             f" Default: {os.path.abspath('bitwarden_dump_attachments')}",
+        " Make sure to delete it after the export,"
+        f" Default: {os.path.abspath('bitwarden_dump_attachments')}",
         default=os.path.abspath("bitwarden_dump_attachments"),
     )
 
     parser.add_argument(
         "--verbose",
         help="Enable Verbose Logging, This will print debug logs, THAT MAY CONTAIN SENSITIVE INFORMATION,"
-             " Default: False",
+        " Default: False",
         action="store_true",
         default=False,
     )
