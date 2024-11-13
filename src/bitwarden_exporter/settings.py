@@ -22,7 +22,7 @@ import time
 
 from pydantic import BaseModel
 
-import pyfiglet
+import pyfiglet  # type: ignore
 
 
 class BitwardenExportSettings(BaseModel):
@@ -48,7 +48,7 @@ def get_bitwarden_settings_based_on_args() -> BitwardenExportSettings:
         "-l",
         "--export-location",
         help="Bitwarden Export Location, Default: bitwarden_dump_<timestamp>.kdbx, This is a dynamic value,"
-             " Just in case if it exists, it will be overwritten",
+        " Just in case if it exists, it will be overwritten",
         default=f"bitwarden_dump_{int(time.time())}.kdbx",
     )
 
@@ -69,7 +69,7 @@ def get_bitwarden_settings_based_on_args() -> BitwardenExportSettings:
     parser.add_argument(
         "--allow-duplicates",
         help="Allow Duplicates entries in Export, In bitwarden each item can be in multiple collections,"
-             " Default: --no-allow-duplicates",
+        " Default: --no-allow-duplicates",
         action=argparse.BooleanOptionalAction,
         default=False,
     )
@@ -77,15 +77,15 @@ def get_bitwarden_settings_based_on_args() -> BitwardenExportSettings:
     parser.add_argument(
         "--tmp-dir",
         help="Temporary Directory to store temporary sensitive files,"
-             " Make sure to delete it after the export,"
-             f" Default: {os.path.abspath('bitwarden_dump_attachments')}",
+        " Make sure to delete it after the export,"
+        f" Default: {os.path.abspath('bitwarden_dump_attachments')}",
         default=os.path.abspath("bitwarden_dump_attachments"),
     )
 
     parser.add_argument(
         "--verbose",
         help="Enable Verbose Logging, This will print debug logs, THAT MAY CONTAIN SENSITIVE INFORMATION,"
-             " Default: --no-verbose",
+        " Default: --no-verbose",
         action=argparse.BooleanOptionalAction,
         default=False,
     )
