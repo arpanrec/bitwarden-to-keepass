@@ -4,9 +4,10 @@ Writes the given data to a file at the specified path.
 
 import json
 import logging
+import os
 import urllib.parse
 from types import TracebackType
-from typing import Any, Dict, List, Optional, Type, Union
+from typing import Any, Dict, List, Optional, Type
 
 from pykeepass import PyKeePass, create_database  # type: ignore
 from pykeepass.entry import Entry  # type: ignore
@@ -18,37 +19,31 @@ from .bw_models import BwFolder, BwItem, BwOrganization
 LOGGER = logging.getLogger(__name__)
 
 
-def write_to_file(data: str, path: Union[str, bytes]) -> None:
-    """
-    Function to write to a file.
-    """
-    if isinstance(data, str):
-        mode = "w"
-        sys_encoding = "UTF-8"
-    elif isinstance(data, bytes):
-        mode = "wb"
-        sys_encoding = None
-    else:
-        raise BitwardenException("Type Unable to Write {type(data)}")
-
-    with open(path, mode, encoding=sys_encoding) as file_attach:
-        file_attach.write(data)
-
-
 class KeePassStorage:
     """
     Class to interact with Keepass
     """
 
     __py_kee_pass: PyKeePass
+    __my_vault_group: Group
 
     def __init__(self, kdbx_file: str, kdbx_password: str) -> None:
-        self.__kdbx_file = kdbx_file
+        self.__kdbx_file = os.path.abspath(kdbx_file)
         self.__kdbx_password = kdbx_password
+        if os.path.exists(self.__kdbx_file):
+            raise BitwardenException("KeePass Database already exists at %s", self.__kdbx_file)
 
     def __enter__(self) -> "KeePassStorage":
-        LOGGER.info("Creating Keepass Database: %s, Password: password", self.__kdbx_file)
+        LOGGER.info("Creating Keepass Database: %s", self.__kdbx_file)
         self.__py_kee_pass = create_database(self.__kdbx_file, password=self.__kdbx_password)
+
+        __kdbx_dir = os.path.dirname(self.__kdbx_file)
+        if not os.path.exists(__kdbx_dir):
+            LOGGER.info("Creating Directory %s", __kdbx_dir)
+            os.makedirs(__kdbx_dir)
+
+        LOGGER.info("Creating Keepass group My Vault")
+        self.__my_vault_group = self.__add_group_recursive(group_path="My Vault")
         return self
 
     def __exit__(
@@ -76,6 +71,15 @@ class KeePassStorage:
         """
         if not parent_group:
             parent_group = self.__py_kee_pass.root_group
+
+        if group_path.startswith("/"):
+            group_path = group_path[1:]
+
+        if group_path.endswith("/"):
+            group_path = group_path[:-1]
+
+        if group_path == "":
+            raise BitwardenException("Group Path is empty")
 
         existing_subgroups: List[Group] = parent_group.subgroups
         if "/" in group_path:
@@ -198,8 +202,10 @@ class KeePassStorage:
         """
 
         for folder in bw_folders.values():
+            if folder.name == "No Folder":
+                continue
             LOGGER.info("Processing Folder %s", folder.name)
-            folder_group: Group = self.__add_group_recursive(group_path=folder.name)
+            folder_group: Group = self.__add_group_recursive(group_path=folder.name, parent_group=self.__my_vault_group)
             items = folder.items
             folder.items = {}
             folder_group.notes = json.dumps(folder.model_dump(), indent=4)
@@ -217,11 +223,10 @@ class KeePassStorage:
         """
 
         LOGGER.info("Processing Items with no Folder")
-        no_folder_group: Group = self.__add_group_recursive(group_path="No Folder")
         for item in no_folder_items:
             LOGGER.info("Processing Item %s", item.name)
             try:
-                self.__add_entry(no_folder_group, item)
+                self.__add_entry(self.__my_vault_group, item)
             except Exception as e:
                 LOGGER.error("Error adding entry %s", e)
                 raise BitwardenException("Error adding entry") from e
@@ -236,7 +241,6 @@ class KeePassStorage:
             username="",
             password="",
         )
-        # binary_id = self.__py_kee_pass.add_binary(data=file_attach.read(), protected=False, compressed=False)
         for key, value in raw_items.items():
             binary_id = self.__py_kee_pass.add_binary(
                 data=json.dumps(value, indent=4).encode(), protected=False, compressed=False
