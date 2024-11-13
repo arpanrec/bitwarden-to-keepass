@@ -5,7 +5,8 @@ Classes:
     BitwardenExportSettings: A Pydantic model that defines the settings for the Bitwarden Exporter.
 
 Functions:
-    get_bitwarden_settings_based_on_args: Parses command-line arguments to populate and return a BitwardenExportSettings instance.
+    get_bitwarden_settings_based_on_args: Parses command-line arguments to populate
+      and return a BitwardenExportSettings instance.
 
 The settings include:
     - export_location: The location where the Bitwarden export will be saved.
