@@ -154,3 +154,4 @@ class BwFolder(BaseModel):
     object: str
     id: Optional[str] = None
     name: str
+    items: Dict[str, BwItem] = {}

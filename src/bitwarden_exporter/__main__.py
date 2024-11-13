@@ -26,6 +26,40 @@ from .keepass import KeePassStorage
 LOGGER = logging.getLogger(__name__)
 
 
+def add_items_to_folder(bw_folders: Dict[str, BwFolder], bw_item: BwItem) -> None:
+    """
+    Adds an item to the folder's items.
+    """
+
+    folder = bw_folders[str(bw_item.folderId)]
+    folder.items[bw_item.id] = bw_item
+
+
+def add_items_to_organization(bw_organizations: Dict[str, BwOrganization], bw_item: BwItem) -> None:
+    """
+    Adds an item to the organization's collections.
+    """
+
+    organization = bw_organizations[str(bw_item.organizationId)]
+
+    if not bw_item.collectionIds or len(bw_item.collectionIds) < 1:
+        raise BitwardenException(f"Item {bw_item.id} does not have any collection, but belongs to an organization")
+
+    if (len(bw_item.collectionIds) == 1) or ((len(bw_item.collectionIds) > 1) and BITWARDEN_SETTINGS.allow_duplicates):
+        for collection_id in bw_item.collectionIds:
+            collection = organization.collections[collection_id]
+            collection.items[bw_item.id] = bw_item
+    elif (len(bw_item.collectionIds) > 1) and (not BITWARDEN_SETTINGS.allow_duplicates):
+        LOGGER.warning(
+            "Item %s belongs to multiple collections, Just using the first one %s",
+            bw_item.name,
+            organization.collections[bw_item.collectionIds[0]].name,
+        )
+        organization.collections[bw_item.collectionIds[0]].items[bw_item.id] = bw_item
+    else:
+        raise BitwardenException(f"Item {bw_item.name} belongs to multiple collections, but duplicates are not allowed")
+
+
 def main() -> None:  # pylint: disable=too-many-locals
     """
     Main function that handles the export process, including fetching organizations,
@@ -35,6 +69,13 @@ def main() -> None:  # pylint: disable=too-many-locals
     if bw_current_status["status"] != "unlocked":
         raise BitwardenException("Vault is not unlocked")
     LOGGER.debug("Vault status: %s", json.dumps(bw_current_status))
+
+    bw_folders: Dict[str, BwFolder] = {
+        folder["id"]: BwFolder(**folder) for folder in json.loads((bw_exec(["list", "folders"])))
+    }
+    LOGGER.info("Total Folders Fetched: %s", len(bw_folders))
+
+    no_folder_items: List[BwItem] = []
 
     bw_organizations_dict = json.loads((bw_exec(["list", "organizations"])))
     bw_organizations: Dict[str, BwOrganization] = {
@@ -66,39 +107,20 @@ def main() -> None:  # pylint: disable=too-many-locals
                     attachment.local_file_path,
                 )
                 download_file(bw_item.id, attachment.id, attachment.local_file_path)
-        if not bw_item.organizationId:
-            continue
 
-        organization = bw_organizations[bw_item.organizationId]
-
-        if not bw_item.collectionIds or len(bw_item.collectionIds) < 1:
-            raise BitwardenException(f"Item {bw_item.id} does not have any collection, but belongs to an organization")
-
-        if (len(bw_item.collectionIds) == 1) or (
-            (len(bw_item.collectionIds) > 1) and BITWARDEN_SETTINGS.allow_duplicates
-        ):
-            for collection_id in bw_item.collectionIds:
-                collection = organization.collections[collection_id]
-                collection.items[bw_item.id] = bw_item
-        elif (len(bw_item.collectionIds) > 1) and (not BITWARDEN_SETTINGS.allow_duplicates):
-            LOGGER.warning(
-                "Item %s belongs to multiple collections, Just using the first one %s",
-                bw_item.name,
-                organization.collections[bw_item.collectionIds[0]].name,
-            )
-            organization.collections[bw_item.collectionIds[0]].items[bw_item.id] = bw_item
+        if bw_item.organizationId and not bw_item.folderId:
+            add_items_to_organization(bw_organizations, bw_item)
+        elif not bw_item.organizationId and bw_item.folderId:
+            add_items_to_folder(bw_folders, bw_item)
         else:
-            raise BitwardenException(
-                f"Item {bw_item.name} belongs to multiple collections, but duplicates are not allowed"
-            )
+            no_folder_items.append(bw_item)
 
     LOGGER.info("Total Items Fetched: %s", len(bw_items_dict))
 
-    bw_folders: List[BwFolder] = [BwFolder(**folder) for folder in json.loads((bw_exec(["list", "folders"])))]
-    LOGGER.info("Total Folders Fetched: %s", len(bw_folders))
-
     with KeePassStorage(BITWARDEN_SETTINGS.export_location, BITWARDEN_SETTINGS.export_password) as storage:
         storage.process_organizations(bw_organizations)
+        storage.process_folders(bw_folders)
+        storage.process_no_folder_items(no_folder_items)
 
     # if not is_debug():
     #     LOGGER.info("Removing Temporary Directory %s", args.tmp_dir)
