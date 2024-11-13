@@ -27,8 +27,7 @@ module.exports = {
             '@semantic-release/exec',
             {
                 prepareCmd: [
-                    'poetry build --no-interaction',
-                    'poetry publish --dry-run --no-interaction',
+                    'poetry publish --build --repository pypi --no-interaction --dry-run',
                     'rm -f CHANGELOG.md',
                     'poetry version ${nextRelease.version}',
                     'poetry export --without-hashes --format=requirements.txt --without dev -o requirements.txt',
