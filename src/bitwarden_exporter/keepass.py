@@ -141,7 +141,7 @@ class KeePassStorage:
             LOGGER.warning("Rest of the URIs will be added as fields")
         uri_list: List[BwField] = []
         for uri in bw_item.login.uris:
-            field_name = f"URI"
+            field_name = "URI"
             if uri.match:
                 field_name = f"URI-type-{uri.match}"
             uri_item = BwField(name=field_name, value=uri.uri, type=0)
