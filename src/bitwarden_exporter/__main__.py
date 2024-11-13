@@ -72,9 +72,10 @@ def main() -> None:  # pylint: disable=too-many-locals
 
         if not bw_item.collectionIds or len(bw_item.collectionIds) < 1:
             raise BitwardenException(f"Item {bw_item.id} does not have any collection, but belongs to an organization")
-        elif len(bw_item.collectionIds) == 1:
-            organization.collections[bw_item.collectionIds[0]].items[bw_item.id] = bw_item
-        elif (len(bw_item.collectionIds) > 1) and BITWARDEN_SETTINGS.allow_duplicates:
+
+        if (len(bw_item.collectionIds) == 1) or (
+            (len(bw_item.collectionIds) > 1) and BITWARDEN_SETTINGS.allow_duplicates
+        ):
             for collection_id in bw_item.collectionIds:
                 collection = organization.collections[collection_id]
                 collection.items[bw_item.id] = bw_item
