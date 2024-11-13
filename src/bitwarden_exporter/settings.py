@@ -20,9 +20,8 @@ import argparse
 import os
 import time
 
-from pydantic import BaseModel
-
 import pyfiglet  # type: ignore
+from pydantic import BaseModel
 
 
 class BitwardenExportSettings(BaseModel):
