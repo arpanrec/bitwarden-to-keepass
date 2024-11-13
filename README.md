@@ -14,7 +14,7 @@
 |_____/_/\_\ .__/ \___/|_|   \__\___|_|   
 ```
 
-Python Wrapper for [Password Manager CLI](https://bitwarden.com/help/cli/) dump with **attachments**.
+Python Wrapper for [Password Manager CLI](https://bitwarden.com/help/cli/) for exporting bitwarden vaults with **attachments**.
 
 This allows you to take a whole backup of your bitwarden vault, including organizations where you don't have access for admin/owner.
 
