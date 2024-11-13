@@ -15,8 +15,6 @@ import os.path
 import subprocess  # nosec B404
 from typing import Dict, List, Optional
 
-from . import BitwardenException
-
 LOGGER = logging.getLogger(__name__)
 
 
@@ -52,9 +50,9 @@ def bw_exec(
         cli_env_vars.update(env_vars)
     LOGGER.debug("Executing CLI :: %s", {" ".join(cmd)})
     command_out = subprocess.run(
-        cmd, capture_output=True, check=False, encoding=ret_encoding, env=cli_env_vars
+        cmd, capture_output=True, check=False, encoding=ret_encoding, env=cli_env_vars, timeout=10
     )  # nosec B603
     if len(command_out.stderr) > 0:
-        raise BitwardenException(f"Error in executing command {command_out.stderr}")
+        LOGGER.warning("Error executing command %s", command_out.stderr)
     command_out.check_returncode()
     return command_out.stdout
