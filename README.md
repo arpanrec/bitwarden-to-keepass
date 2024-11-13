@@ -23,16 +23,19 @@ This allows you to take a whole backup of your bitwarden vault, including organi
 - [Bitwarden CLI](https://bitwarden.com/help/article/cli/#download-and-install)
 - [python-poetry](https://python-poetry.org/docs/#installation)
 
-## Instructions
+## Installation
+
+Install with [pipx](https://github.com/pypa/pipx).
 
 ```bash
-git clone https://github.com/arpanrec/bitwarden-exporter.git
-cd bitwarden-exporter
-poetry install
-poetry run bitwarden-exporter --help
+pipx install bitwarden-exporter
 ```
 
 ## Options
+
+```bash
+bitwarden-exporter --help
+```
 
 ```text
   -h, --help            show this help message and exit
