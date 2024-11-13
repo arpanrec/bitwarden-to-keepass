@@ -88,7 +88,7 @@ def main() -> None:  # pylint: disable=too-many-locals
             organization.collections[bw_item.collectionIds[0]].items[bw_item.id] = bw_item
         else:
             raise BitwardenException(
-                f"Item {bw_item.id} belongs to multiple collections, but duplicates are not allowed"
+                f"Item {bw_item.name} belongs to multiple collections, but duplicates are not allowed"
             )
 
     LOGGER.info("Total Items Fetched: %s", len(bw_items_dict))
