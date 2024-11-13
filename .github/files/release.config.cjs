@@ -24,18 +24,12 @@ module.exports = {
             },
         ],
         [
-            '@semantic-release/changelog',
-            {
-                changelogFile: 'CHANGELOG.md',
-            },
-        ],
-        [
             '@semantic-release/exec',
             {
                 prepareCmd: [
                     'rm -f CHANGELOG.md',
                     'poetry version ${nextRelease.version}',
-                    'poetry export --without-hashes --format=requirements.txt -o requirements.txt',
+                    'poetry export --without-hashes --format=requirements.txt --without dev -o requirements.txt',
                     'poetry export --without-hashes --format=requirements.txt --with dev -o requirements-dev.txt',
                 ].join(' && '),
                 // successCmd:
@@ -43,14 +37,15 @@ module.exports = {
             },
         ],
         [
+            '@semantic-release/changelog',
+            {
+                changelogFile: 'CHANGELOG.md',
+            },
+        ],
+        [
             '@semantic-release/git',
             {
-                assets: [
-                    'CHANGELOG.md',
-                    'pyproject.toml',
-                    'requirements.txt',
-                    'requirements-dev.txt',
-                ],
+                assets: ['CHANGELOG.md', 'pyproject.toml', 'requirements.txt', 'requirements-dev.txt'],
                 message: 'chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}',
             },
         ],
