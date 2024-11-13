@@ -1706,18 +1706,19 @@ testutils = ["gitpython (>3)"]
 
 [[package]]
 name = "pynvim"
-version = "0.5.1"
+version = "0.5.2"
 description = "Python client for Neovim"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "pynvim-0.5.1-py2.py3-none-any.whl", hash = "sha256:cf8d9141109e5319388ff06df641c35d2c1bffc763a4da2345a63a71079ce353"},
-    {file = "pynvim-0.5.1.tar.gz", hash = "sha256:ed99cbaf286998aad48564ae13d26933b9106fc5a917a719798d2f2b2b8683ae"},
+    {file = "pynvim-0.5.2-py3-none-any.whl", hash = "sha256:20b1c5a18c4cddfc480950094d4135f782b1a98c32149ea63e24bbdb7021eb54"},
+    {file = "pynvim-0.5.2.tar.gz", hash = "sha256:734a2432db8683519f58572617528ecb4a2f321bc7b27f034b3f9b2322c15615"},
 ]
 
 [package.dependencies]
-greenlet = ">=3.0"
+greenlet = {version = ">=3.0", markers = "platform_python_implementation != \"PyPy\""}
 msgpack = ">=0.5.0"
+typing-extensions = {version = ">=4.5", markers = "python_version < \"3.12\""}
 
 [package.extras]
 docs = ["sphinx", "sphinx-rtd-theme"]
@@ -2050,13 +2051,13 @@ pbr = ">=2.0.0"
 
 [[package]]
 name = "tomli"
-version = "2.0.2"
+version = "2.1.0"
 description = "A lil' TOML parser"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "tomli-2.0.2-py3-none-any.whl", hash = "sha256:2ebe24485c53d303f690b0ec092806a085f07af5a5aa1464f3931eec36caaa38"},
-    {file = "tomli-2.0.2.tar.gz", hash = "sha256:d46d457a85337051c36524bc5349dd91b1877838e2979ac5ced3e710ed8a60ed"},
+    {file = "tomli-2.1.0-py3-none-any.whl", hash = "sha256:a5c57c3d1c56f5ccdf89f6523458f60ef716e210fc47c4cfb188c5ba473e0391"},
+    {file = "tomli-2.1.0.tar.gz", hash = "sha256:3f646cae2aec94e17d04973e4249548320197cfabdf130015d023de4b74d8ab8"},
 ]
 
 [[package]]
@@ -2291,4 +2292,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.10"
-content-hash = "aedc5181a9cc921a8a76d527ce417e93407a0a6ad144a721c1e08752d087553d"
+content-hash = "6eeb4a6d5527d1f6e2762eb3daa9903be803b56b3b5340793dcda1ea223638f2"
