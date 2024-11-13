@@ -41,7 +41,7 @@ def get_bitwarden_settings_based_on_args() -> BitwardenExportSettings:
     """
 
     parser = argparse.ArgumentParser()
-    print("Bitwarden Exporter")
+
     parser.add_argument(
         "-l",
         "--export-location",
