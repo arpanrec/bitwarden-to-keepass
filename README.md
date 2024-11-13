@@ -34,6 +34,7 @@ poetry run bitwarden-exporter --help
 
 ## Options
 
+```text
   -h, --help            show this help message and exit
   -l EXPORT_LOCATION, --export-location EXPORT_LOCATION
                         Bitwarden Export Location, Default: bitwarden_dump_<timestamp>.kdbx, This is a dynamic value, Just in case if it exists, it will be overwritten
@@ -47,6 +48,7 @@ poetry run bitwarden-exporter --help
                         exporter/bitwarden_dump_attachments
   --verbose, --no-verbose
                         Enable Verbose Logging, This will print debug logs, THAT MAY CONTAIN SENSITIVE INFORMATION, Default: --no-verbose
+```
 
 ## Roadmap
 
