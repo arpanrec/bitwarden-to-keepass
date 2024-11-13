@@ -1,6 +1,6 @@
-## [1.3.1](https://github.com/arpanrec/bitwarden-exporter/compare/1.3.0...1.3.1) (2024-11-13)
+## [1.3.2](https://github.com/arpanrec/bitwarden-exporter/compare/1.3.1...1.3.2) (2024-11-13)
 
 
 ### Bug Fixes
 
-* update success command in release configuration to include build step ([34d54b2](https://github.com/arpanrec/bitwarden-exporter/commit/34d54b2e60e521a65932610863bcb38a3023b254))
+* add classifiers to pyproject.toml for better package metadata ([cc9aa2c](https://github.com/arpanrec/bitwarden-exporter/commit/cc9aa2caa720b5cb79ce38daa09566da918ce794))
